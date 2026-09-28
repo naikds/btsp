@@ -323,6 +323,20 @@ document.getElementById('reset-game-btn').addEventListener('click', () => {
     }
 });
 
+document.getElementById('refresh-btn').addEventListener('click', () => {
+    state.core.reserve += state.core.trash + 1;
+    state.core.trash = 0;
+    state.zones.field1.forEach(id => {
+        const cardData = findCardData(id);
+        cardData.tapped = false;
+    });
+    state.zones.field2.forEach(id => {
+        const cardData = findCardData(id);
+        cardData.tapped = false;
+    });
+    renderAll();
+});
+
 // --- ゾーンごとの一括操作ボタン ---
 document.getElementById('temp-to-hand-btn').addEventListener('click', () => {
     moveAllTempCards(state.zones.temp, state.zones.hand);
