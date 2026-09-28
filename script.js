@@ -161,7 +161,7 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
     }
 
     state.cards = [];
-    state.zones = {deck: [], hand: [], field: [], temp: [], free: [], trash: [], remove: [] };
+    state.zones = { deck: [], hand: [], field: [], temp: [], free: [], trash: [], remove: [] };
     state.soulCore = { location: 'reserve' };
 
     state.cardConfigs.forEach(conf => {
@@ -270,26 +270,26 @@ function moveCard(cardId, targetZone) {
 
 // --- ゾーンごとの一括操作ボタン ---
 document.getElementById('temp-to-hand-btn').addEventListener('click', () => {
-    moveAllTempCards(state.zones.temp,state.zones.hand);
+    moveAllTempCards(state.zones.temp, state.zones.hand);
 });
 
 document.getElementById('temp-to-trash-btn').addEventListener('click', () => {
-    moveAllTempCards(state.zones.temp,state.zones.trash);
+    moveAllTempCards(state.zones.temp, state.zones.trash);
 });
 
 document.getElementById('temp-to-bottom-btn').addEventListener('click', () => {
-    moveAllTempCards(state.zones.temp,state.zones.deck);
+    moveAllTempCards(state.zones.temp, state.zones.deck);
 });
 
 document.getElementById('free-to-trash-btn').addEventListener('click', () => {
-    moveAllTempCards(state.zones.free,state.zones.trash);
+    moveAllTempCards(state.zones.free, state.zones.trash);
 });
 
 document.getElementById('free-to-bottom-btn').addEventListener('click', () => {
-    moveAllTempCards(state.zones.free,state.zones.deck);
+    moveAllTempCards(state.zones.free, state.zones.deck);
 });
 
-function moveAllTempCards(sourceZone,targetZone){
+function moveAllTempCards(sourceZone, targetZone) {
     sourceZone.forEach(id => {
         handleCardLeavingField(id);
         targetZone.push(id);
@@ -309,10 +309,10 @@ function drawCard(targetZone) {
         return;
     }
     const cardId = state.zones.deck.shift();
-    
+
     // 山札から引く際もフィールド（元々フィールドにいた扱いはないが安全のため）からの離脱チェック
     handleCardLeavingField(cardId);
-    
+
     state.zones[targetZone].push(cardId);
     renderAll();
 }
@@ -426,7 +426,7 @@ function renderZones() {
 function createCardElement(cardData, isInField) {
     const card = document.createElement('div');
     card.className = 'card';
-    if (cardData.tapped) card.classList.add('tapped');
+    if (cardData.tapped && isInField) card.classList.add('tapped');
     if (isInField) card.classList.add('in-field');
     if (state.selected.type === 'card' && state.selected.id === cardData.id) {
         card.classList.add('selected');
@@ -449,7 +449,7 @@ function createCardElement(cardData, isInField) {
     coreBadge.className = 'core-badge';
     let coreText = `C:${cardData.core}`;
     //ソウルコアが乗っている場合文字追加
-    if(state.soulCore.location === cardData.id){
+    if (state.soulCore.location === cardData.id) {
         coreText += ` <span class="soul-core-badge">+1</span>`;
     }
     coreBadge.innerHTML = `<span>${coreText}</span>`;
@@ -489,32 +489,42 @@ function createCardElement(cardData, isInField) {
         ui.appendChild(soulIndicator);
     }
 
-    // カードクリック時の挙動
-    card.addEventListener('click', (e) => {
+    // カードデータに初期値がなければ持たせる
+    if (cardData.lastTapTime === undefined) {
+        cardData.lastTapTime = 0;
+    }
+
+    imgWrapper.addEventListener('click', (e) => {
         e.stopPropagation();
-        if (state.selected.type === 'soul') {
-            // ソウルコアをこのカードに配置
-            state.soulCore.location = cardData.id;
-            state.selected = { type: null, id: null };
+
+        const currentTime = new Date().getTime();
+        const tapInterval = currentTime - cardData.lastTapTime;
+
+        // 400ミリ秒以内にもう一度同じカードがクリックされたら
+        if (tapInterval < 400 && tapInterval > 0 && isInField) {
+            cardData.tapped = !cardData.tapped;
+            cardData.lastTapTime = 0; // リセット
             renderAll();
-            return;
+        } else {
+            // 通常のクリック時の挙動
+            if (state.selected.type === 'soul' && isInField) {
+                state.soulCore.location = cardData.id;
+                state.selected = { type: null, id: null };
+                renderAll();
+                return;
+            }
+
+            state.selected = { type: 'card', id: cardData.id };
+            renderAll();
+
+            cardData.lastTapTime = currentTime;
         }
-
-        state.selected = { type: 'card', id: cardData.id };
-        renderAll();
-    });
-
-    // ダブルクリックでタップ切り替え
-    imgWrapper.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
-        cardData.tapped = !cardData.tapped;
-        renderAll();
     });
 
     // 例：カード要素を作る時に右クリックイベントを追加する
     card.addEventListener('contextmenu', (e) => {
         e.preventDefault(); // ブラウザ標準の「名前を付けて保存」などのメニューを出さないようにする
-        
+
         // 拡大モーダルに画像を設定して表示する
         const previewModal = document.getElementById('card-preview-modal');
         const previewImg = document.getElementById('card-preview-img');
@@ -587,7 +597,7 @@ function renderModal() {
     const mode = state.modal.mode;
     // targetList にはカードIDの配列が入るようになる
     const targetList = (mode === 'card-trash') ? state.zones.trash : state.zones.remove;
-    
+
     const titleElem = document.getElementById('modal-title');
     titleElem.innerHTML = `${mode === 'card-trash' ? 'カードトラッシュ' : '除外ゾーン'}一覧 (<span id="modal-count">${targetList.length}</span>枚)`;
 
@@ -662,13 +672,13 @@ function moveCardFromModal(targetZone) {
 
     const sourceList = (state.modal.mode === 'card-trash') ? state.zones.trash : state.zones.remove;
     const index = sourceList.indexOf(cardId); // IDのインデックスを探す
-    
+
     if (index !== -1) {
         sourceList.splice(index, 1); // 配列からIDを削除
         state.modal.selectedId = null;
 
         state.zones[targetZone].push(cardId);
-        
+
         renderAll();
         renderModal();
     }
