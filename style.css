@@ -132,6 +132,15 @@ h1 {
     padding-bottom: 2px;
 }
 
+/* 最上段レイアウト：flexで幅を割り振り、中段と完全に横幅を一致させる */
+.most-top-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* 上段レイアウト：flexで幅を割り振り、中段と完全に横幅を一致させる */
 .top-row {
     display: flex;
@@ -250,15 +259,27 @@ h1 {
     box-sizing: border-box;
 }
 
+/* 左側のフィールド群を縦に並べるコンテナ */
+.fields-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    flex-grow: 1;      /* 右側のコアゾーンの横を除いた残りの幅をすべて埋める */
+    min-width: 0;      /* flexアイテムが縮みすぎたりバグるのを防ぐ */
+    box-sizing: border-box;
+}
+
+/* 個別のフィールドエリア（上下それぞれ） */
 .field-area {
-    flex-grow: 1;
+    width: 100%;
     background: rgba(0, 0, 0, 0.4);
     border: 2px dashed #4a7c59;
     border-radius: 8px;
     padding: 10px;
-    min-height: 250px;
+    min-height: 160px; /* 上下に分けるため少しコンパクトに */
     position: relative;
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 /* コア管理ゾーン群（縦並び） */
