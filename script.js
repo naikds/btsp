@@ -5,7 +5,8 @@ let state = {
     zones: {
         deck: [],              // 山札（カードIDの配列）
         hand: [],          // 手札（カードIDの配列）
-        field: [],         // フィールド（カードIDの配列）
+        field1: [],         // フィールド（カードIDの配列）
+        field2: [],         // フィールド（カードIDの配列）
         temp: [],          // めくり置き場（カードIDの配列）
         free: [],          // 一時置き場（カードIDの配列）
         trash: [],         // カードトラッシュ（カードデータの配列）
@@ -54,6 +55,7 @@ document.getElementById('preview-btn').addEventListener('click', () => {
 function showSplitPreview(img) {
     const cols = parseInt(document.getElementById('grid-cols').value);
     const rows = parseInt(document.getElementById('grid-rows').value);
+    const topOffset = parseInt(document.getElementById('top-offset')?.value) || 0;
     const canvas = document.getElementById('canvas-preview');
     const ctx = canvas.getContext('2d');
 
@@ -66,18 +68,20 @@ function showSplitPreview(img) {
     ctx.lineWidth = Math.max(2, img.width / 300);
 
     const pWidth = img.width / cols;
-    const pHeight = img.height / rows;
+    // カードエリアの高さを基準に高さを算出
+    const cardAreaHeight = img.height - topOffset;
+    const pHeight = cardAreaHeight / rows;
 
     for (let c = 1; c < cols; c++) {
         ctx.beginPath();
-        ctx.moveTo(c * pWidth, 0);
+        ctx.moveTo(c * pWidth, topOffset);
         ctx.lineTo(c * pWidth, img.height);
         ctx.stroke();
     }
     for (let r = 1; r < rows; r++) {
         ctx.beginPath();
-        ctx.moveTo(0, r * pHeight);
-        ctx.lineTo(img.width, r * pHeight);
+        ctx.moveTo(0, topOffset+(r * pHeight));
+        ctx.lineTo(img.width, topOffset+(r * pHeight));
         ctx.stroke();
     }
 
@@ -93,7 +97,11 @@ function showSplitPreview(img) {
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             tempCtx.clearRect(0, 0, pWidth, pHeight);
-            tempCtx.drawImage(img, c * pWidth, r * pHeight, pWidth, pHeight, 0, 0, pWidth, pHeight);
+            // 切り出し元のY座標に topOffset を加算
+            const sourceX = c * pWidth;
+            const sourceY = topOffset + (r * pHeight);
+            tempCtx.drawImage(img, sourceX, sourceY, pWidth, pHeight, 0, 0, pWidth, pHeight);
+
             const dataUrl = tempCanvas.toDataURL();
 
             const configObj = { imgUrl: dataUrl, count: 3 };
@@ -102,9 +110,11 @@ function showSplitPreview(img) {
             const cellDiv = document.createElement('div');
             cellDiv.className = 'grid-overlay-cell';
             cellDiv.style.left = (c * 100 / cols) + '%';
-            cellDiv.style.top = (r * 100 / rows) + '%';
+            // cellDiv.style.top = (r * 100 / rows) + '%';
+            cellDiv.style.top = ((topOffset + (r * pHeight)) / img.height) * 100 + '%';
             cellDiv.style.width = (100 / cols) + '%';
-            cellDiv.style.height = (100 / rows) + '%';
+            // cellDiv.style.height = (100 / rows) + '%';
+            cellDiv.style.height = (pHeight / img.height) * 100 + '%';
 
             const badge = document.createElement('div');
             badge.className = 'grid-counter-badge';
@@ -161,7 +171,7 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
     }
 
     state.cards = [];
-    state.zones = { deck: [], hand: [], field: [], temp: [], free: [], trash: [], remove: [] };
+    state.zones = { deck: [], hand: [], field1: [],field2:[], temp: [], free: [], trash: [], remove: [] };
     state.soulCore = { location: 'reserve' };
 
     state.cardConfigs.forEach(conf => {
@@ -255,7 +265,7 @@ function handleCardLeavingField(cardId) {
 // --- カード移動の共通アクション ---
 function moveCard(cardId, targetZone) {
     // フィールドにいたカードが別の場所（手札・トラッシュ・デッキなど）に移動する場合の離脱チェック
-    const wasInField = state.zones.field.includes(cardId);
+    const wasInField = state.zones.field1.includes(cardId) || state.zones.field2.includes(cardId);
     if (wasInField && targetZone !== 'field') {
         handleCardLeavingField(cardId);
     }
@@ -267,6 +277,51 @@ function moveCard(cardId, targetZone) {
     state.selected = { type: null, id: null };
     renderAll();
 }
+
+document.getElementById('reset-game-btn').addEventListener('click', () => {
+
+    // 1. 各ゾーンをクリアして、全カードを再び山札（deck）に戻す
+    state.zones.deck = [];
+    state.zones.hand = [];
+    state.zones.field1 = [];
+    state.zones.field2 = [];
+    state.zones.temp = [];
+    state.zones.free = [];
+    state.zones.trash = [];
+    state.zones.remove = [];
+
+    // マスターリストから全カードIDを山札に再登録
+    state.cards.forEach(card => {
+        // カードのコアやタップ状態もリセット
+        card.core = 0;
+        card.tapped = false;
+        state.zones.deck.push(card.id);
+    });
+
+    // 2. 山札をもう一度バラバラにする（最初の並び替え）
+    shuffleArray(state.zones.deck);
+
+    // 3. コアとソウルコアの初期化
+    state.core = {
+        reserve: 3,
+        life: 5,
+        trash: 0
+    };
+    state.soulCore = {
+        location: 'reserve'
+    };
+
+    // 4. 選択状態のクリア
+    state.selected = { type: null, id: null };
+
+    // 5. 再描画
+    renderAll();
+
+    // 6. 初期手札（4枚）を配る
+    for (let i = 0; i < 4; i++) {
+        drawCard('hand');
+    }
+});
 
 // --- ゾーンごとの一括操作ボタン ---
 document.getElementById('temp-to-hand-btn').addEventListener('click', () => {
@@ -317,11 +372,6 @@ function drawCard(targetZone) {
     renderAll();
 }
 
-document.getElementById('shuffle-btn').addEventListener('click', () => {
-    shuffleArray(state.zones.deck);
-    alert('山札をシャッフルしました');
-});
-
 document.getElementById('deck-to-bottom-btn').addEventListener('click', () => {
     if (state.selected.type !== 'card') {
         alert('山札の下へ送るカードを選択してください！');
@@ -333,7 +383,8 @@ document.getElementById('deck-to-bottom-btn').addEventListener('click', () => {
 // --- ドラッグ＆ドロップ風 クリック移動ゾーンの定義 ---
 const dropZones = [
     { elem: document.getElementById('zone-hand'), zoneName: 'hand' },
-    { elem: document.getElementById('zone-field'), zoneName: 'field' },
+    { elem: document.getElementById('zone-field1'), zoneName: 'field1' },
+    { elem: document.getElementById('zone-field2'), zoneName: 'field2' },
     { elem: document.getElementById('zone-temp'), zoneName: 'temp' },
     { elem: document.getElementById('zone-free'), zoneName: 'free' },
     { elem: document.getElementById('zone-reserve'), zoneName: 'soul-reserve' },
@@ -407,7 +458,8 @@ function renderCountsDisplay() {
 function renderZones() {
     const zoneContainers = {
         hand: document.getElementById('zone-hand'),
-        field: document.getElementById('field-cards-container'),
+        field1: document.getElementById('field1-cards-container'),
+        field2: document.getElementById('field2-cards-container'),
         temp: document.getElementById('temp-cards-container'),
         free: document.getElementById('free-cards-container')
     };
@@ -417,7 +469,7 @@ function renderZones() {
         container.innerHTML = '';
         state.zones[zoneName].forEach(cardId => {
             const cardData = findCardData(cardId);
-            const cardElem = createCardElement(cardData, zoneName === 'field');
+            const cardElem = createCardElement(cardData, zoneName === 'field1' || zoneName === 'field2');
             container.appendChild(cardElem);
         });
     });
@@ -660,7 +712,7 @@ function updateModalToolbarState() {
 
 // モーダルからの移動ボタン
 document.getElementById('modal-to-hand-btn').addEventListener('click', () => moveCardFromModal('hand'));
-document.getElementById('modal-to-field-btn').addEventListener('click', () => moveCardFromModal('field'));
+document.getElementById('modal-to-field-btn').addEventListener('click', () => moveCardFromModal('field1'));
 document.getElementById('modal-to-deck-btn').addEventListener('click', () => moveCardFromModal('deck'));
 document.getElementById('modal-to-free-btn').addEventListener('click', () => moveCardFromModal('free'));
 
