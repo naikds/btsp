@@ -266,7 +266,7 @@ function handleCardLeavingField(cardId) {
 function moveCard(cardId, targetZone) {
     // フィールドにいたカードが別の場所（手札・トラッシュ・デッキなど）に移動する場合の離脱チェック
     const wasInField = state.zones.field1.includes(cardId) || state.zones.field2.includes(cardId);
-    if (wasInField && targetZone !== 'field') {
+    if (wasInField && (targetZone !== 'field1' && targetZone !== 'field2')) {
         handleCardLeavingField(cardId);
     }
 
