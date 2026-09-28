@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>バトスピ 一人回しツール</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>バトスピ 一人回しツール</h1>
+
+    <!-- セットアップ・分割確認画面 -->
+    <div id="setup-container">
+        <h3>1. デッキ画像のアップロードと分割設定</h3>
+        <p>公式アプリ等で出力したデッキ画像を選択し、グリッド数を指定してください。</p>
+        <input type="file" id="deck-image-input" accept="image/*"><br><br>
+        <label>横グリッド数: <input type="number" id="grid-cols" value="5" min="1" max="10" style="width: 50px;"></label>
+        <label style="margin-left: 10px;">縦グリッド数: <input type="number" id="grid-rows" value="3" min="1" max="10"
+                style="width: 50px;"></label>
+        <br><br>
+        <button class="action-btn" id="preview-btn"
+            style="background: #ff9800; font-size: 0.9rem; padding: 8px 15px;">分割プレビューを表示</button>
+
+        <!-- プレビュー＆枚数調整セクション -->
+        <div id="preview-section">
+            <h3>2. 分割プレビューと枚数調整</h3>
+            <p style="font-size: 0.85rem; color: #ccc;">各カードのマス中央にあるカウンターで枚数を調整してください。合計枚数が40枚になる必要があります。</p>
+
+            <div id="deck-total-info">現在の合計枚数: <span id="total-count-val">0</span> 枚 / 40枚</div>
+
+            <div id="grid-preview-container">
+                <canvas id="canvas-preview"></canvas>
+                <div id="grid-overlays"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+            </div>
+
+            <br>
+            <button class="action-btn" id="start-game-btn"
+                style="background: #4CAF50; font-size: 1rem; padding: 10px 20px;">決定（ゲーム開始）</button>
+        </div>
+    </div>
+
+    <!-- プレイマット画面 -->
+    <div id="playmat">
+        <div id="guide-msg">操作ガイド: カードをフィールドからトラッシュや除外へ移動したり、各置き場の一括ボタンが使えます。</div>
+
+        <div class="top-row">
+            <!-- 山札ゾーン -->
+            <div class="deck-area" id="zone-deck">
+                <div class="zone-title">山札 (<span id="deck-count">0</span>枚)</div>
+                <div class="floating-deck">
+                    <div class="deck-btn-group" style="margin-bottom: 4px;">
+                        <button class="action-btn" id="draw-btn">ドロー</button>
+                        <button class="action-btn" id="flip-btn" style="background:#4CAF50;">めくる</button>
+                    </div>
+                    <div class="deck-btn-group" style="margin-bottom: 4px;">
+                        <button class="action-btn" id="deck-to-bottom-btn" style="background:#607D8B;">山下へ</button>
+                        <button class="action-btn" id="shuffle-btn" style="background:#555;">シャッフル</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- めくり置き場 -->
+            <div class="temp-area" id="zone-temp">
+                <div class="zone-title">めくり置き場</div>
+                <div class="deck-btn-group" style="margin-bottom: 5px;">
+                    <button class="action-btn" id="temp-to-hand-btn">一括手札</button>
+                    <button class="action-btn" id="temp-to-trash-btn">一括トラッシュ</button>
+                    <button class="action-btn" id="temp-to-bottom-btn">一括山下</button>
+                </div>
+                <div class="temp-cards-container" id="temp-cards-container"></div>
+            </div>
+
+            <!-- 一時置き場 -->
+            <div class="free-area" id="zone-free">
+                <div class="zone-title">一時置き場</div>
+                <div class="deck-btn-group" style="margin-bottom: 5px;">
+                    <button class="action-btn" id="free-to-trash-btn">一括トラッシュ</button>
+                    <button class="action-btn" id="free-to-bottom-btn">一括山下</button>
+                </div>
+                <div class="free-area-cards" id="free-cards-container"></div>
+            </div>
+
+            <!-- カードトラッシュ -->
+            <div class="card-trash-area" id="zone-card-trash">
+                <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">トラッシュ</div>
+                <div class="card-trash-count" id="card-trash-count">0</div>
+            </div>
+
+            <!-- 除外ゾーン -->
+            <div class="remove-area" id="zone-remove">
+                <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">除外ゾーン</div>
+                <div class="remove-count" id="remove-count">0</div>
+            </div>
+        </div>
+
+        <!-- メインプレイエリア（フィールド ＋ 右側の縦並びコアゾーン） -->
+        <div class="main-play-row">
+            <!-- フィールドエリア -->
+            <div class="field-area" id="zone-field">
+                <div class="zone-title">フィールド</div>
+                <div id="field-cards-container" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+            </div>
+
+            <!-- コア管理ゾーン（ライフ・リザーブ・トラッシュを縦に積み上げ） -->
+            <div class="core-zones-column">
+                <!-- ライフ -->
+                <div class="core-zone" id="zone-life">
+                    <div class="zone-title">ライフ</div>
+                    <div class="core-zone-content" id="life-content">
+                        <div class="zone-core-counter" id="life-counter">
+                            <span class="core-label">C:</span>
+                            <span class="core-num" id="life-count">5</span>
+                            <div class="core-btn-col">
+                                <button class="core-ctrl-btn" id="life-plus">+</button>
+                                <button class="core-ctrl-btn" id="life-minus">-</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- リザーブ -->
+                <div class="core-zone" id="zone-reserve">
+                    <div class="zone-title">リザーブ</div>
+                    <div class="core-zone-content" id="reserve-content">
+                        <div class="zone-core-counter" id="reserve-counter">
+                            <span class="core-label">C:</span>
+                            <span class="core-num" id="reserve-count">3</span>
+                            <div class="core-btn-col">
+                                <button class="core-ctrl-btn" id="reserve-plus">+</button>
+                                <button class="core-ctrl-btn" id="reserve-minus">-</button>
+                            </div>
+                        </div>
+                        <div class="soul-holder" id="reserve-soul-holder">
+                            <div id="soul-core">SOUL<br>CORE</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- トラッシュ（コア用） -->
+                <div class="core-zone" id="zone-trash">
+                    <div class="zone-title">トラッシュ (コア)</div>
+                    <div class="core-zone-content" id="trash-content">
+                        <div class="zone-core-counter" id="trash-counter">
+                            <span class="core-label">C:</span>
+                            <span class="core-num" id="trash-count">0</span>
+                            <div class="core-btn-col">
+                                <button class="core-ctrl-btn" id="trash-plus">+</button>
+                                <button class="core-ctrl-btn" id="trash-minus">-</button>
+                            </div>
+                        </div>
+                        <div class="soul-holder" id="trash-soul-holder"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 手札エリア -->
+        <div class="zone-title">手札</div>
+        <div class="hand-area" id="zone-hand"></div>
+    </div>
+
+    <!-- カード拡大プレビュー用モーダル -->
+    <div id="card-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; z-index: 9999; cursor: pointer;">
+        <img id="card-preview-img" src="" alt="Card Preview" style="max-height: 80vh; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+    </div>
+
+    <!-- 共通カード一覧モーダル（トラッシュ・除外用） -->
+    <div id="list-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">カード一覧 (<span id="modal-count">0</span>枚)</h3>
+                <button class="close-modal-btn" id="close-modal-btn">閉じる</button>
+            </div>
+
+            <!-- 移動用ツールバー -->
+            <div class="modal-toolbar">
+                <span id="modal-selection-status">カードを選択してください</span>
+                <button class="action-btn" id="modal-to-hand-btn" disabled>手札へ</button>
+                <button class="action-btn" id="modal-to-field-btn" disabled>フィールドへ</button>
+                <button class="action-btn" id="modal-to-deck-btn" disabled>山札の下へ</button>
+                <button class="action-btn" id="modal-to-free-btn" disabled style="background:#555;">一時置場へ</button>
+            </div>
+
+            <div class="modal-cards-grid" id="modal-cards-container"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
