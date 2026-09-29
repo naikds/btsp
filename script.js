@@ -167,7 +167,7 @@ function updateTotalCount() {
 }
 
 // --- 4. 「決定」ボタンでゲーム開始 ---
-document.getElementById('start-game-btn').addEventListener('pointerup', () => {
+document.getElementById('start-game-btn').addEventListener('pointerup', (e) => {
     e.preventDefault();
     let total = state.cardConfigs.reduce((sum, conf) => sum + conf.count, 0);
     if (total !== 40) {
@@ -345,7 +345,7 @@ function moveCard(cardId, targetZone) {
     renderAll();
 }
 
-document.getElementById('reset-game-btn').addEventListener('pointerup', () => {
+document.getElementById('reset-game-btn').addEventListener('pointerup', (e) => {
     e.preventDefault();
 
     // 1. 各ゾーンをクリアして、全カードを再び山札（deck）に戻す
@@ -688,7 +688,7 @@ function createCardElement(cardData, isInField) {
         previewModal.style.display = 'flex';
     });
 
-    document.getElementById('card-preview-modal').addEventListener('pointerup', () => {
+    document.getElementById('card-preview-modal').addEventListener('pointerup', (e) => {
         e.preventDefault();
         document.getElementById('card-preview-modal').style.display = 'none';
     });
@@ -805,7 +805,7 @@ function _createCardElement(cardData, isInField) {
     });
 
     // 拡大モーダルをクリックしたら閉じる
-    document.getElementById('card-preview-modal').addEventListener('pointerup', () => {
+    document.getElementById('card-preview-modal').addEventListener('pointerup', (e) => {
         e.preventDefault();
         document.getElementById('card-preview-modal').style.display = 'none';
     });
