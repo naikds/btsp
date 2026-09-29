@@ -637,6 +637,7 @@ function createCardElement(cardData, isInField) {
 
         // 400ミリ秒以内にもう一度同じカードがクリックされたら
         if (tapInterval < 400 && tapInterval > 0 && isInField) {
+            e.preventDefault();
             cardData.tapped = !cardData.tapped;
             cardData.lastTapTime = 0; // リセット
             renderAll();
@@ -840,4 +841,4 @@ document.addEventListener('touchend', function(event) {
         event.preventDefault();
     }
     lastTouchEnd = now;
-}, false);
+}, { passive: false });
