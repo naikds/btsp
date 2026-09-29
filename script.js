@@ -167,8 +167,7 @@ function updateTotalCount() {
 }
 
 // --- 4. 「決定」ボタンでゲーム開始 ---
-document.getElementById('start-game-btn').addEventListener('pointerup', (e) => {
-    e.preventDefault();
+document.getElementById('start-game-btn').addEventListener('pointerup', () => {
     let total = state.cardConfigs.reduce((sum, conf) => sum + conf.count, 0);
     if (total !== 40) {
         alert(`デッキの合計枚数が40枚ではありません（現在 ${total} 枚）。バトスピのデッキは40枚にする必要があります！`);
