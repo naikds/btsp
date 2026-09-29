@@ -580,6 +580,124 @@ function createCardElement(cardData, isInField) {
 
     const imgWrapper = document.createElement('div');
     imgWrapper.className = 'card-img-wrapper';
+
+    // 1. 下の層：見た目の画像（タッチを無効化してブラウザのズームを防ぐ）
+    const img = document.createElement('img');
+    img.src = cardData.imgUrl;
+    img.style.pointerEvents = 'none';
+    imgWrapper.appendChild(img);
+
+    // 2. 上の層：透明な操作用オーバーレイ（CSSクラスを使用）
+    const touchOverlay = document.createElement('div');
+    touchOverlay.className = 'card-touch-overlay';
+    imgWrapper.appendChild(touchOverlay);
+
+    card.appendChild(imgWrapper);
+
+    const ui = document.createElement('div');
+    ui.className = 'card-ui';
+    card.appendChild(ui);
+
+    // コアバッジの描画
+    const coreBadge = document.createElement('div');
+    coreBadge.className = 'core-badge';
+    let coreText = `C:${cardData.core}`;
+    if (state.soulCore.location === cardData.id) {
+        coreText += `<span class="soul-core-badge">+1</span>`;
+    }
+    coreBadge.innerHTML = `<span>${coreText}</span>`;
+
+    ui.addEventListener('pointerup', (e) => {
+        e.stopPropagation();
+        if (cardData.core > 0) {
+            cardData.core--;
+            state.core['choice']++;
+        }
+        renderAll();
+    });
+    ui.appendChild(coreBadge);
+
+    // ソウルコアが乗っている場合のインジケーター描画
+    if (state.soulCore.location === cardData.id) {
+        const soulIndicator = document.createElement('div');
+        soulIndicator.className = 'card-soul-indicator';
+        if (state.selected.type === 'soul') soulIndicator.classList.add('selected');
+        soulIndicator.innerHTML = 'SOUL<br>CORE';
+
+        soulIndicator.addEventListener('pointerup', (e) => {
+            e.stopPropagation();
+            state.selected = { type: 'soul', id: null };
+            renderAll();
+        });
+        ui.appendChild(soulIndicator);
+    }
+
+    // カードデータに初期値がなければ持たせる
+    if (cardData.lastTapTime === undefined) {
+        cardData.lastTapTime = 0;
+    }
+
+    // タップ判定は透明オーバーレイ側で行う
+    touchOverlay.addEventListener('pointerup', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const currentTime = new Date().getTime();
+        const tapInterval = currentTime - cardData.lastTapTime;
+
+        if (tapInterval < 400 && tapInterval > 0 && isInField) {
+            cardData.tapped = !cardData.tapped;
+            cardData.lastTapTime = 0;
+            renderAll();
+        } else {
+            if (state.core['choice'] > 0 && isInField) {
+                cardData.core += state.core['choice'];
+                state.core['choice'] = 0;
+                renderAll();
+                return;
+            }
+            if (state.selected.type === 'soul' && isInField) {
+                state.soulCore.location = cardData.id;
+                state.selected = { type: null, id: null };
+                renderAll();
+                return;
+            }
+
+            state.selected = { type: 'card', id: cardData.id };
+            renderAll();
+
+            cardData.lastTapTime = currentTime;
+        }
+    });
+
+    // 右クリックでプレビュー
+    card.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const previewModal = document.getElementById('card-preview-modal');
+        const previewImg = document.getElementById('card-preview-img');
+        previewImg.src = cardData.imgUrl;
+        previewModal.style.display = 'flex';
+    });
+
+    document.getElementById('card-preview-modal').addEventListener('pointerup', () => {
+        document.getElementById('card-preview-modal').style.display = 'none';
+    });
+
+    return card;
+}
+
+function _createCardElement(cardData, isInField) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    if (cardData.tapped && isInField) card.classList.add('tapped');
+    if (isInField) card.classList.add('in-field');
+    if (state.selected.type === 'card' && state.selected.id === cardData.id) {
+        card.classList.add('selected');
+    }
+    card.id = cardData.id;
+
+    const imgWrapper = document.createElement('div');
+    imgWrapper.className = 'card-img-wrapper';
     const img = document.createElement('img');
     img.src = cardData.imgUrl;
     imgWrapper.appendChild(img);
