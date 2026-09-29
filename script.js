@@ -970,7 +970,7 @@ document.getElementById('playmat').addEventListener('pointerup', (e) => {
 let lastTouchEnd = 0;
 document.addEventListener('touchend', function(event) {
     const now = (new Date()).getTime();
-    if (now - lastTouchEnd <= 300) {
+    if (now - lastTouchEnd <= 600) {
         event.preventDefault();
     }
     lastTouchEnd = now;
