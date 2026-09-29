@@ -134,36 +134,37 @@
                 <div class="core-zone-content" id="choice-content">
                     <div class="zone-core-counter" id="choice-counter">
                         <span class="core-label">C:</span>
-                        <span class="core-num" id="choice-count">0</span>
+                        <span class="core-num" data-num="choice-count">0</span>
                     </div>
                 </div>
             </div>
-
             <!-- コア管理ゾーン（ライフ・リザーブ・トラッシュを縦に積み上げ） -->
             <div class="core-zones-column">
-                <!-- ボイド -->
-                <div class="core-zone" id="zone-void">
-                    <div class="zone-title">ボイド
-                        <span class="core-zone-title-minus">から取る</span>
-                        <span class="core-zone-title-puls">へ置く</span>
-                    </div>
-                    <div class="core-zone-content" id="void-content">
-                        <div class="zone-core-counter" id="void-counter">
-                            <span class="core-label">C:</span>
-                            <span class="core-num" id="void-count">∞</span>
+                <div class="core-zones-column-rapper">
+                    <!-- ボイド -->
+                    <div class="core-zone" id="zone-void">
+                        <div class="zone-title">ボイド
+                            <span class="core-zone-title-minus">から取る</span>
+                            <span class="core-zone-title-puls">へ置く</span>
+                        </div>
+                        <div class="core-zone-content" id="void-content">
+                            <div class="zone-core-counter" id="void-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="void-count">∞</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- ライフ -->
-                <div class="core-zone" id="zone-life">
-                    <div class="zone-title">ライフ
-                        <span class="core-zone-title-minus">から取る</span>
-                        <span class="core-zone-title-puls">へ置く</span>
-                    </div>
-                    <div class="core-zone-content" id="life-content">
-                        <div class="zone-core-counter" id="life-counter">
-                            <span class="core-label">C:</span>
-                            <span class="core-num" id="life-count">5</span>
+                    <!-- ライフ -->
+                    <div class="core-zone" id="zone-life">
+                        <div class="zone-title">ライフ
+                            <span class="core-zone-title-minus">から取る</span>
+                            <span class="core-zone-title-puls">へ置く</span>
+                        </div>
+                        <div class="core-zone-content" id="life-content">
+                            <div class="zone-core-counter" id="life-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="life-count">5</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -174,13 +175,15 @@
                         <span class="core-zone-title-puls">へ置く</span>
                     </div>
                     <div class="core-zone-content" id="reserve-content">
-                        <div class="zone-core-counter" id="reserve-counter">
-                            <span class="core-label">C:</span>
-                            <span class="core-num" id="reserve-count">3</span>
-                        </div>
-                        <div class="soul-holder" id="reserve-soul-holder">
-                            <div id="soul-core">SOUL<br>CORE</div>
-                        </div>
+                        <div class="core-zones-column-rapper">
+                            <div class="zone-core-counter" id="reserve-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="reserve-count">3</span>
+                            </div>
+                            <div class="soul-holder" id="reserve-soul-holder">
+                                <div id="soul-core">SOUL<br>CORE</div>
+                            </div>
+                        </div> 
                     </div>
                 </div>
 
@@ -191,12 +194,20 @@
                         <span class="core-zone-title-puls">へ置く</span>
                     </div>
                     <div class="core-zone-content" id="trash-content">
-                        <div class="zone-core-counter" id="trash-counter">
-                            <span class="core-label">C:</span>
-                            <span class="core-num" id="trash-count">0</span>
+                        <div class="core-zones-column-rapper">
+                            <div class="zone-core-counter" id="trash-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="trash-count">0</span>
+                            </div>
+                            <div class="soul-holder" id="trash-soul-holder"></div>
                         </div>
-                        <div class="soul-holder" id="trash-soul-holder"></div>
                     </div>
+                </div>
+                <div class="notpc-only-contents">
+                <div style="display: block;">
+                    <span>選択中コア</span><br>
+                    <div class="core-num" data-num="choice-count">1</div>
+                </div>  
                 </div>
             </div>
         </div>

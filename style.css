@@ -138,6 +138,11 @@ h1 {
     border-bottom: 1px solid #444;
     padding-bottom: 2px;
 }
+@media (max-width: 768px) {
+    .zone-title {
+        font-size: 0.65rem;
+    }
+  }
 
 /* 最上段レイアウト：flexで幅を割り振り、中段と完全に横幅を一致させる */
 .most-top-row {
@@ -349,6 +354,7 @@ h1 {
 @media (max-width: 768px) {
     .core-zones-column  {
       flex-direction:row; /* 縦並びに変えるなど */
+      width:auto;
     }
   }
 
@@ -639,6 +645,11 @@ h1 {
     box-shadow: 0 0 15px 5px #ffeb3b;
     border: 2px solid #ffeb3b;
 }
+@media (max-width: 768px) {
+    #soul-core {
+        margin-top: 20px;
+    }
+  }
 
 
 .floating-deck {
@@ -771,8 +782,18 @@ button.action-btn:hover {
 .top-row-rows-rapper{
     display: contents;
 }
+
 @media (max-width: 768px) {
     .top-row-rows-rapper  {
+        display: block;
+    }
+  }
+
+.core-zones-column-rapper{
+    display: contents;
+}
+@media (max-width: 768px) {
+    .core-zones-column-rapper  {
         display: block;
     }
   }

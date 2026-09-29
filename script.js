@@ -288,8 +288,11 @@ function setupCoreCounter(type) {
 ['void', 'reserve', 'life', 'trash'].forEach(setupCoreCounter);
 
 function renderCores() {
-    ['choice', 'reserve', 'life', 'trash'].forEach(type => {
+    ['reserve', 'life', 'trash'].forEach(type => {
         document.getElementById(`${type}-count`).innerText = state.core[type];
+    });
+    document.querySelectorAll('[data-num="choice-count"]').forEach(x=>{
+        x.innerHTML = state.core["choice"];
     });
 }
 
