@@ -9,8 +9,8 @@ body {
 
 /* ダブルタップ拡大、ピンチズーム、デフォルトのスクロールなどを無効化する */
 body {
-    /* 縦と横のスクロール（パン）だけを許可する */
-    touch-action: pan-x pan-y; 
+    -webkit-user-select: none; /* Safari用 */
+    user-select: none;         /* 標準 */
 }
 
 h1 {
