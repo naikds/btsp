@@ -11,6 +11,7 @@ body {
 body {
     -webkit-user-select: none; /* Safari用 */
     user-select: none;         /* 標準 */
+    touch-action: manipulation;
 }
 
 h1 {
