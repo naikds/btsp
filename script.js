@@ -128,20 +128,20 @@ function showSplitPreview(img) {
             const btnPlus = document.createElement('button');
             btnPlus.innerText = '+';
 
-            btnMinus.onclick = (e) => {
+            btnMinus.addEventListener('pointerup', (e) => {
                 e.stopPropagation();
                 if (configObj.count > 0) {
                     configObj.count--;
                     countSpan.innerText = configObj.count;
                     updateTotalCount();
                 }
-            };
-            btnPlus.onclick = (e) => {
+            });
+            btnPlus.addEventListener('pointerup', (e) => {
                 e.stopPropagation();
                 configObj.count++;
                 countSpan.innerText = configObj.count;
                 updateTotalCount();
-            };
+            });
 
             badge.appendChild(btnMinus);
             badge.appendChild(countSpan);
@@ -165,7 +165,7 @@ function updateTotalCount() {
 }
 
 // --- 4. 「決定」ボタンでゲーム開始 ---
-document.getElementById('start-game-btn').addEventListener('click', () => {
+document.getElementById('start-game-btn').addEventListener('pointerup', () => {
     let total = state.cardConfigs.reduce((sum, conf) => sum + conf.count, 0);
     if (total !== 40) {
         alert(`デッキの合計枚数が40枚ではありません（現在 ${total} 枚）。バトスピのデッキは40枚にする必要があります！`);
@@ -266,7 +266,7 @@ function shuffleArray(array) {
 // --- コア増減ロジック ---
 function setupCoreCounter(type) {
     //右クリックでcohiceの中身を配置
-    document.getElementById(`zone-${type}`).addEventListener('click', (e) => {
+    document.getElementById(`zone-${type}`).addEventListener('pointerup', (e) => {
         e.preventDefault(); // ブラウザ標準の「名前を付けて保存」などのメニューを出さないようにする
         e.stopPropagation();
         if (state.core['choice'] > 0) {
@@ -276,7 +276,7 @@ function setupCoreCounter(type) {
         renderCores();
     });
 
-    document.getElementById(`${type}-counter`).addEventListener('click', (e) => {
+    document.getElementById(`${type}-counter`).addEventListener('pointerup', (e) => {
         e.stopPropagation();
         if (state.core[type] > 0) {
             state.core[type]--;
@@ -341,7 +341,7 @@ function moveCard(cardId, targetZone) {
     renderAll();
 }
 
-document.getElementById('reset-game-btn').addEventListener('click', () => {
+document.getElementById('reset-game-btn').addEventListener('pointerup', () => {
 
     // 1. 各ゾーンをクリアして、全カードを再び山札（deck）に戻す
     state.zones.deck = [];
@@ -391,13 +391,13 @@ const actionBtn = document.querySelectorAll('[data-act]');
 actionBtn.forEach(button => {
     switch (button.dataset.act) {
         case "draw":
-            button.addEventListener('click', () => drawCard('hand'));
+            button.addEventListener('pointerup', () => drawCard('hand'));
             break;
         case "flip":
-            button.addEventListener('click', () => drawCard('temp'));
+            button.addEventListener('pointerup', () => drawCard('temp'));
             break;
         case "deck-to-bottom":
-            button.addEventListener('click', () => {
+            button.addEventListener('pointerup', () => {
                 if (state.selected.type !== 'card') {
                     alert('山札の下へ送るカードを選択してください！');
                     return;
@@ -406,7 +406,7 @@ actionBtn.forEach(button => {
             });
             break;
         case "refresh":
-            button.addEventListener('click', () => {
+            button.addEventListener('pointerup', () => {
                 state.core.reserve += state.core.trash + 1;
                 state.core.trash = 0;
                 state.zones.field1.forEach(id => {
@@ -424,23 +424,23 @@ actionBtn.forEach(button => {
 });
 
 // --- ゾーンごとの一括操作ボタン ---
-document.getElementById('temp-to-hand-btn').addEventListener('click', () => {
+document.getElementById('temp-to-hand-btn').addEventListener('pointerup', () => {
     moveAllTempCards(state.zones.temp, state.zones.hand);
 });
 
-document.getElementById('temp-to-trash-btn').addEventListener('click', () => {
+document.getElementById('temp-to-trash-btn').addEventListener('pointerup', () => {
     moveAllTempCards(state.zones.temp, state.zones.trash);
 });
 
-document.getElementById('temp-to-bottom-btn').addEventListener('click', () => {
+document.getElementById('temp-to-bottom-btn').addEventListener('pointerup', () => {
     moveAllTempCards(state.zones.temp, state.zones.deck);
 });
 
-document.getElementById('free-to-trash-btn').addEventListener('click', () => {
+document.getElementById('free-to-trash-btn').addEventListener('pointerup', () => {
     moveAllTempCards(state.zones.free, state.zones.trash);
 });
 
-document.getElementById('free-to-bottom-btn').addEventListener('click', () => {
+document.getElementById('free-to-bottom-btn').addEventListener('pointerup', () => {
     moveAllTempCards(state.zones.free, state.zones.deck);
 });
 
@@ -485,7 +485,7 @@ const dropZones = [
 ];
 
 dropZones.forEach(zone => {
-    zone.elem.addEventListener('click', (e) => {
+    zone.elem.addEventListener('pointerup', (e) => {
         const isBackground = (
             e.target === zone.elem ||
             e.target.classList.contains('zone-title') ||
@@ -521,7 +521,7 @@ dropZones.forEach(zone => {
 });
 
 // ソウルコア自体のクリック選択
-document.getElementById('soul-core').addEventListener('click', (e) => {
+document.getElementById('soul-core').addEventListener('pointerup', (e) => {
     e.stopPropagation();
     state.selected = { type: 'soul', id: null };
     renderAll();
@@ -599,14 +599,14 @@ function createCardElement(cardData, isInField) {
     }
     coreBadge.innerHTML = `<span>${coreText}</span>`;
 
-    ui.onclick = (e) => {
+    ui.addEventListener('pointerup', (e) => {
         e.stopPropagation();
         if (cardData.core > 0) {
             cardData.core--;
             state.core['choice']++;
         }
         renderAll();
-    }
+    });
     ui.appendChild(coreBadge);
 
     // ソウルコアが乗っている場合のインジケーター描画
@@ -616,11 +616,11 @@ function createCardElement(cardData, isInField) {
         if (state.selected.type === 'soul') soulIndicator.classList.add('selected');
         soulIndicator.innerHTML = 'SOUL<br>CORE';
 
-        soulIndicator.onclick = (e) => {
+        soulIndicator.addEventListener('pointerup', (e) => {
             e.stopPropagation();
             state.selected = { type: 'soul', id: null };
             renderAll();
-        };
+        });
         ui.appendChild(soulIndicator);
     }
 
@@ -629,7 +629,7 @@ function createCardElement(cardData, isInField) {
         cardData.lastTapTime = 0;
     }
 
-    imgWrapper.addEventListener('click', (e) => {
+    imgWrapper.addEventListener('pointerup', (e) => {
         e.stopPropagation();
 
         const currentTime = new Date().getTime();
@@ -675,7 +675,7 @@ function createCardElement(cardData, isInField) {
     });
 
     // 拡大モーダルをクリックしたら閉じる
-    document.getElementById('card-preview-modal').addEventListener('click', () => {
+    document.getElementById('card-preview-modal').addEventListener('pointerup', () => {
         document.getElementById('card-preview-modal').style.display = 'none';
     });
 
@@ -705,7 +705,7 @@ function renderSoulCore() {
     soulCoreElem.innerHTML = 'SOUL<br>CORE';
 
     // クリックされたらソウルコアを選択状態にする
-    soulCoreElem.addEventListener('click', (e) => {
+    soulCoreElem.addEventListener('pointerup', (e) => {
         e.stopPropagation();
         state.selected = { type: 'soul', id: null };
         renderAll();
@@ -733,7 +733,7 @@ function closeModal() {
     document.getElementById('list-modal').style.display = 'none';
 }
 
-document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+document.getElementById('close-modal-btn').addEventListener('pointerup', closeModal);
 
 function renderModal() {
     const mode = state.modal.mode;
@@ -767,7 +767,7 @@ function renderModal() {
         imgWrapper.appendChild(img);
         card.appendChild(imgWrapper);
 
-        card.addEventListener('click', (e) => {
+        card.addEventListener('pointerup', (e) => {
             e.stopPropagation();
             if (state.modal.selectedId === cardData.id) {
                 state.modal.selectedId = null;
@@ -801,10 +801,10 @@ function updateModalToolbarState() {
 }
 
 // モーダルからの移動ボタン
-document.getElementById('modal-to-hand-btn').addEventListener('click', () => moveCardFromModal('hand'));
-document.getElementById('modal-to-field-btn').addEventListener('click', () => moveCardFromModal('field1'));
-document.getElementById('modal-to-deck-btn').addEventListener('click', () => moveCardFromModal('deck'));
-document.getElementById('modal-to-free-btn').addEventListener('click', () => moveCardFromModal('free'));
+document.getElementById('modal-to-hand-btn').addEventListener('pointerup', () => moveCardFromModal('hand'));
+document.getElementById('modal-to-field-btn').addEventListener('pointerup', () => moveCardFromModal('field1'));
+document.getElementById('modal-to-deck-btn').addEventListener('pointerup', () => moveCardFromModal('deck'));
+document.getElementById('modal-to-free-btn').addEventListener('pointerup', () => moveCardFromModal('free'));
 
 function moveCardFromModal(targetZone) {
     const cardId = state.modal.selectedId;
@@ -827,7 +827,7 @@ function moveCardFromModal(targetZone) {
 }
 
 // プレイマットの背景クリックで選択解除
-document.getElementById('playmat').addEventListener('click', (e) => {
+document.getElementById('playmat').addEventListener('pointerup', (e) => {
     if (e.target.id === 'playmat') {
         state.selected = { type: null, id: null };
         renderAll();
