@@ -18,6 +18,7 @@ h1 {
     margin: 0 0 10px 0;
 }
 
+
 /* セットアップ・プレビュー画面 */
 #setup-container {
     background: #2d2d2d;
@@ -66,16 +67,19 @@ h1 {
     background: rgba(0, 0, 0, 0.85);
     border: 3px solid #ffeb3b;
     border-radius: 8px;
-    padding: 8px 12px;
+    /*padding: 8px 12px;*/
     display: flex;
     align-items: center;
-    gap: 10px;
     pointer-events: auto;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+    width: 100%;
+    max-width: 120px;
+    display: grid;
+    /* 3つの要素を「1:1:1」の割合で等分に並べる */
+    grid-template-columns: repeat(3, 1fr); 
 }
 
 .grid-counter-badge button {
-    width: 36px;
     height: 36px;
     background: #444;
     color: #fff;
@@ -94,10 +98,8 @@ h1 {
 }
 
 .grid-counter-badge span {
-    font-size: 1.4rem;
     font-weight: bold;
     color: #ffeb3b;
-    min-width: 30px;
     text-align: center;
 }
 
@@ -194,6 +196,7 @@ h1 {
     cursor: pointer;
 }
 
+
 .temp-cards-container {
     display: flex;
     gap: 8px;
@@ -202,6 +205,16 @@ h1 {
     height: 65%;
     align-items: center;
 }
+@media (max-width: 768px) {
+    .temp-area  {
+        min-width: 30px;
+        min-height: 45px;
+    }
+    .temp-cards-container{
+        min-height: 30px;
+        height: 50%;
+    }
+  }
 
 .free-area {
     flex-grow: 1;
@@ -209,6 +222,7 @@ h1 {
     min-height: 120px;
     cursor: pointer;
 }
+
 
 .free-area-cards {
     display: flex;
@@ -218,6 +232,16 @@ h1 {
     height: 65%;
     align-items: center;
 }
+@media (max-width: 768px) {
+    .free-area  {
+        min-width: 30px;
+        min-height: 45px;
+    }
+    .free-area-cards{
+        min-height: 30px;
+        height: 50%;
+    }
+  }
 
 .card-trash-area {
     width: 95px;
@@ -267,6 +291,11 @@ h1 {
     width: 100%;
     box-sizing: border-box;
 }
+@media (max-width: 768px) {
+    .main-play-row  {
+      flex-direction: column; /* 縦並びに変えるなど */
+    }
+  }
 
 /* 左側のフィールド群を縦に並べるコンテナ */
 .fields-column {
@@ -291,13 +320,23 @@ h1 {
     box-sizing: border-box;
 }
 
+
 .field-area-container{
     display: flex;
     gap: 58px;
-    flex-wrap: wrap;
     height: 100%;
     margin-left: 30px;
+    overflow-x: auto;
 }
+@media (max-width: 768px) {
+    .field-area {
+        height: 20vh;
+    }
+    .field-area-container{
+        gap:35px;
+        margin-left: 8px;
+    }
+  }
 
 /* コア管理ゾーン群（縦並び） */
 .core-zones-column {
@@ -307,6 +346,12 @@ h1 {
     width: 170px;
     flex-shrink: 0;
 }
+@media (max-width: 768px) {
+    .core-zones-column  {
+      flex-direction:row; /* 縦並びに変えるなど */
+    }
+  }
+
 
 .core-zone {
     position: relative;
@@ -336,9 +381,11 @@ h1 {
 }
 
 .core-zone-title-puls{display: none;}
-.core-zone:hover .core-zone-title-puls{
-    color: rgb(61, 255, 36);
-    display:contents;
+@media (min-width: 769px) {
+    .core-zone:hover .core-zone-title-puls{
+        color: rgb(61, 255, 36);
+        display:contents;
+    }
 }
 .core-zone:has(.zone-core-counter:hover) .core-zone-title-puls{
     display: none;
@@ -348,10 +395,13 @@ h1 {
 }
 
 .core-zone-title-minus{display: none;}
-.core-zone:has(.zone-core-counter:hover) .core-zone-title-minus{
-    color: rgb(255, 134, 134);
-    display: contents;
+@media (min-width: 769px) {
+    .core-zone:has(.zone-core-counter:hover) .core-zone-title-minus{
+        color: rgb(255, 134, 134);
+        display: contents;
+    }
 }
+
 
 .core-zone-content {
     display: flex;
@@ -716,4 +766,27 @@ button.action-btn:hover {
     height:80vh;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.top-row-rows-rapper{
+    display: contents;
+}
+@media (max-width: 768px) {
+    .top-row-rows-rapper  {
+        display: block;
+    }
+  }
+
+@media (max-width: 768px) {
+.pc-only-contents{
+    display: none;
+}
+}
+.notpc-only-contents{
+    display: none;
+}
+@media (max-width: 768px) {
+    .notpc-only-contents{
+        display: contents;
+    }
 }

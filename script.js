@@ -363,7 +363,7 @@ document.getElementById('reset-game-btn').addEventListener('click', () => {
 
     // 3. コアとソウルコアの初期化
     state.core = {
-        choice:0,
+        choice: 0,
         reserve: 3,
         life: 5,
         trash: 0
@@ -384,18 +384,40 @@ document.getElementById('reset-game-btn').addEventListener('click', () => {
     }
 });
 
-document.getElementById('refresh-btn').addEventListener('click', () => {
-    state.core.reserve += state.core.trash + 1;
-    state.core.trash = 0;
-    state.zones.field1.forEach(id => {
-        const cardData = findCardData(id);
-        cardData.tapped = false;
-    });
-    state.zones.field2.forEach(id => {
-        const cardData = findCardData(id);
-        cardData.tapped = false;
-    });
-    renderAll();
+const actionBtn = document.querySelectorAll('[data-act]');
+actionBtn.forEach(button => {
+    switch (button.dataset.act) {
+        case "draw":
+            button.addEventListener('click', () => drawCard('hand'));
+            break;
+        case "flip":
+            button.addEventListener('click', () => drawCard('temp'));
+            break;
+        case "deck-to-bottom":
+            button.addEventListener('click', () => {
+                if (state.selected.type !== 'card') {
+                    alert('山札の下へ送るカードを選択してください！');
+                    return;
+                }
+                moveCard(state.selected.id, 'deck');
+            });
+            break;
+        case "refresh":
+            button.addEventListener('click', () => {
+                state.core.reserve += state.core.trash + 1;
+                state.core.trash = 0;
+                state.zones.field1.forEach(id => {
+                    const cardData = findCardData(id);
+                    cardData.tapped = false;
+                });
+                state.zones.field2.forEach(id => {
+                    const cardData = findCardData(id);
+                    cardData.tapped = false;
+                });
+                renderAll();
+            });
+            break;
+    }
 });
 
 // --- ゾーンごとの一括操作ボタン ---
@@ -429,9 +451,6 @@ function moveAllTempCards(sourceZone, targetZone) {
 }
 
 
-// --- 山札操作 ---
-document.getElementById('draw-btn').addEventListener('click', () => drawCard('hand'));
-document.getElementById('flip-btn').addEventListener('click', () => drawCard('temp'));
 
 function drawCard(targetZone) {
     if (state.zones.deck.length === 0) {
@@ -447,13 +466,7 @@ function drawCard(targetZone) {
     renderAll();
 }
 
-document.getElementById('deck-to-bottom-btn').addEventListener('click', () => {
-    if (state.selected.type !== 'card') {
-        alert('山札の下へ送るカードを選択してください！');
-        return;
-    }
-    moveCard(state.selected.id, 'deck');
-});
+
 
 // --- ドラッグ＆ドロップ風 クリック移動ゾーンの定義 ---
 const dropZones = [
@@ -522,7 +535,9 @@ function renderAll() {
 }
 
 function renderDeckCount() {
-    document.getElementById('deck-count').innerText = state.zones.deck.length;
+    document.querySelectorAll('[data-num="deck-count"]').forEach(x=>{
+        x.innerText = state.zones.deck.length;
+    });
 }
 
 function renderCountsDisplay() {
@@ -581,12 +596,12 @@ function createCardElement(cardData, isInField) {
     }
     coreBadge.innerHTML = `<span>${coreText}</span>`;
 
-    ui.onclick = (e)=>{
+    ui.onclick = (e) => {
         e.stopPropagation();
-        if (cardData.core > 0){
+        if (cardData.core > 0) {
             cardData.core--;
             state.core['choice']++;
-        } 
+        }
         renderAll();
     }
     ui.appendChild(coreBadge);
@@ -624,7 +639,7 @@ function createCardElement(cardData, isInField) {
             renderAll();
         } else {
             // 通常のクリック時の挙動
-            if(state.core['choice'] > 0 && isInField){
+            if (state.core['choice'] > 0 && isInField) {
                 cardData.core += state.core['choice'];
                 state.core['choice'] = 0;
                 renderAll();

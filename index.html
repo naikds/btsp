@@ -10,7 +10,7 @@
 
 <body>
 
-    <h1>バトスピ 一人回しツール</h1>
+    <h1 class="pc-only-contents">バトスピ 一人回しツール</h1>
 
     <!-- セットアップ・分割確認画面 -->
     <div id="setup-container">
@@ -48,27 +48,38 @@
     <div id="playmat">
         <div class="most-top-row">
             <button class="action-btn" id="reset-game-btn" style="background:#555;">リセット</button>
-            <div id="guide-msg">操作ガイド: カードをフィールドからトラッシュや除外へ移動したり、各置き場の一括ボタンが使えます。</div>
+            <div id="guide-msg" class="pc-only-contents">操作ガイド: カードをフィールドからトラッシュや除外へ移動したり、各置き場の一括ボタンが使えます。</div>
+            <div class="deck-area notpc-only-contents">
+                <div class="zone-title">山札 (<span data-num="deck-count">0</span>枚)</div>
+                <div class="floating-deck">
+                    <div class="deck-btn-group" style="margin-bottom: 4px;">
+                        <button class="action-btn" data-act="draw">ドロー</button>
+                        <button class="action-btn" data-act="flip">めくる</button>
+                        <button class="action-btn" data-act="deck-to-bottom">山下</button>
+                        <button class="action-btn" data-act="refresh">リフレ</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="top-row">
             <!-- 山札ゾーン -->
-            <div class="deck-area" id="zone-deck">
-                <div class="zone-title">山札 (<span id="deck-count">0</span>枚)</div>
+            <div class="deck-area pc-only-contents">
+                <div class="zone-title">山札 (<span data-num="deck-count">0</span>枚)</div>
                 <div class="floating-deck">
                     <div class="deck-btn-group" style="margin-bottom: 4px;">
-                        <button class="action-btn" id="draw-btn">ドロー</button>
-                        <button class="action-btn" id="flip-btn">めくる</button>
+                        <button class="action-btn" data-act="draw">ドロー</button>
+                        <button class="action-btn" data-act="flip">めくる</button>
                     </div>
                     <div class="deck-btn-group" style="margin-bottom: 4px;">
-                        <button class="action-btn" id="deck-to-bottom-btn">山下へ</button>
-                        <button class="action-btn" id="refresh-btn">リフレッシュ</button>
+                        <button class="action-btn" data-act="deck-to-bottom">山下へ</button>
+                        <button class="action-btn" data-act="refresh">リフレッシュ</button>
                     </div>
                 </div>
             </div>
 
             <!-- めくり置き場 -->
             <div class="temp-area" id="zone-temp">
-                <div class="zone-title">めくり置き場</div>
+                <div class="zone-title pc-only-contents">めくり置き場</div>
                 <div class="deck-btn-group" style="margin-bottom: 5px;">
                     <button class="action-btn" id="temp-to-hand-btn">一括手札</button>
                     <button class="action-btn" id="temp-to-trash-btn">一括トラッシュ</button>
@@ -79,7 +90,7 @@
 
             <!-- 一時置き場 -->
             <div class="free-area" id="zone-free">
-                <div class="zone-title">一時置き場</div>
+                <div class="zone-title pc-only-contents">一時置き場</div>
                 <div class="deck-btn-group" style="margin-bottom: 5px;">
                     <button class="action-btn" id="free-to-trash-btn">一括トラッシュ</button>
                     <button class="action-btn" id="free-to-bottom-btn">一括山下</button>
@@ -87,21 +98,23 @@
                 <div class="free-area-cards" id="free-cards-container"></div>
             </div>
 
-            <!-- カードトラッシュ -->
-            <div class="card-trash-area" id="zone-card-trash">
-                <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">トラッシュ</div>
-                <div class="card-trash-count" id="card-trash-count">0</div>
-            </div>
+            <div class="top-row-rows-rapper"><!-- スマホ用ラッパー-->
+                <!-- カードトラッシュ -->
+                <div class="card-trash-area" id="zone-card-trash">
+                    <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">トラッシュ</div>
+                    <div class="card-trash-count" id="card-trash-count">0</div>
+                </div>
 
-            <!-- 除外ゾーン -->
-            <div class="remove-area" id="zone-remove">
-                <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">除外ゾーン</div>
-                <div class="remove-count" id="remove-count">0</div>
+                <!-- 除外ゾーン -->
+                <div class="remove-area" id="zone-remove">
+                    <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">除外ゾーン</div>
+                    <div class="remove-count" id="remove-count">0</div>
+                </div>
             </div>
         </div>
 
         <!-- メインプレイエリア（フィールド ＋ 右側の縦並びコアゾーン） -->
-        <div class="zone-title">フィールド</div>
+        <div class="zone-title pc-only-contents">フィールド</div>
         <div class="main-play-row">
             <!-- フィールドエリア -->
             <!-- 左側：上下に並べるフィールド群のラッパー -->
@@ -111,12 +124,12 @@
                     <div id="field1-cards-container" class="field-area-container"></div>
                 </div>
                 <!-- 下段フィールド -->
-                <div class="field-area" id="zone-field2">
+                <div class="field-area pc-only-contents" id="zone-field2">
                     <div id="field2-cards-container" class="field-area-container"></div>
                 </div>
             </div>
 
-            <div class="core-zone" id="zone-choice">
+            <div class="core-zone pc-only-contents" id="zone-choice">
                 <div class="zone-title">選択中コア</div>
                 <div class="core-zone-content" id="choice-content">
                     <div class="zone-core-counter" id="choice-counter">
@@ -189,7 +202,7 @@
         </div>
 
         <!-- 手札エリア -->
-        <div class="zone-title">手札</div>
+        <div class="zone-title pc-only-contents">手札</div>
         <div class="hand-area" id="zone-hand"></div>
     </div>
 
