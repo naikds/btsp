@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>バトスピ 一人回しツール</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -56,11 +57,11 @@
                 <div class="floating-deck">
                     <div class="deck-btn-group" style="margin-bottom: 4px;">
                         <button class="action-btn" id="draw-btn">ドロー</button>
-                        <button class="action-btn" id="flip-btn" style="background:#4CAF50;">めくる</button>
+                        <button class="action-btn" id="flip-btn">めくる</button>
                     </div>
                     <div class="deck-btn-group" style="margin-bottom: 4px;">
-                        <button class="action-btn" id="deck-to-bottom-btn" style="background:#607D8B;">山下へ</button>
-                        <button class="action-btn" id="refresh-btn" style="background:#9bff04;">リフレッシュ</button>
+                        <button class="action-btn" id="deck-to-bottom-btn">山下へ</button>
+                        <button class="action-btn" id="refresh-btn">リフレッシュ</button>
                     </div>
                 </div>
             </div>
@@ -107,42 +108,62 @@
             <div class="fields-column">
                 <!-- 上段フィールド -->
                 <div class="field-area" id="zone-field1">
-                    <div id="field1-cards-container" style="display: flex; gap: 25px; flex-wrap: wrap;"></div>
+                    <div id="field1-cards-container" class="field-area-container"></div>
                 </div>
                 <!-- 下段フィールド -->
                 <div class="field-area" id="zone-field2">
-                    <div id="field2-cards-container" style="display: flex; gap: 25px; flex-wrap: wrap;"></div>
+                    <div id="field2-cards-container" class="field-area-container"></div>
+                </div>
+            </div>
+
+            <div class="core-zone" id="zone-choice">
+                <div class="zone-title">選択中コア</div>
+                <div class="core-zone-content" id="choice-content">
+                    <div class="zone-core-counter" id="choice-counter">
+                        <span class="core-label">C:</span>
+                        <span class="core-num" id="choice-count">0</span>
+                    </div>
                 </div>
             </div>
 
             <!-- コア管理ゾーン（ライフ・リザーブ・トラッシュを縦に積み上げ） -->
             <div class="core-zones-column">
+                <!-- ボイド -->
+                <div class="core-zone" id="zone-void">
+                    <div class="zone-title">ボイド
+                        <span class="core-zone-title-minus">から取る</span>
+                        <span class="core-zone-title-puls">へ置く</span>
+                    </div>
+                    <div class="core-zone-content" id="void-content">
+                        <div class="zone-core-counter" id="void-counter">
+                            <span class="core-label">C:</span>
+                            <span class="core-num" id="void-count">∞</span>
+                        </div>
+                    </div>
+                </div>
                 <!-- ライフ -->
                 <div class="core-zone" id="zone-life">
-                    <div class="zone-title">ライフ</div>
+                    <div class="zone-title">ライフ
+                        <span class="core-zone-title-minus">から取る</span>
+                        <span class="core-zone-title-puls">へ置く</span>
+                    </div>
                     <div class="core-zone-content" id="life-content">
                         <div class="zone-core-counter" id="life-counter">
                             <span class="core-label">C:</span>
                             <span class="core-num" id="life-count">5</span>
-                            <div class="core-btn-col">
-                                <button class="core-ctrl-btn" id="life-plus">+</button>
-                                <button class="core-ctrl-btn" id="life-minus">-</button>
-                            </div>
                         </div>
                     </div>
                 </div>
-
                 <!-- リザーブ -->
                 <div class="core-zone" id="zone-reserve">
-                    <div class="zone-title">リザーブ</div>
+                    <div class="zone-title">リザーブ
+                        <span class="core-zone-title-minus">から取る</span>
+                        <span class="core-zone-title-puls">へ置く</span>
+                    </div>
                     <div class="core-zone-content" id="reserve-content">
                         <div class="zone-core-counter" id="reserve-counter">
                             <span class="core-label">C:</span>
                             <span class="core-num" id="reserve-count">3</span>
-                            <div class="core-btn-col">
-                                <button class="core-ctrl-btn" id="reserve-plus">+</button>
-                                <button class="core-ctrl-btn" id="reserve-minus">-</button>
-                            </div>
                         </div>
                         <div class="soul-holder" id="reserve-soul-holder">
                             <div id="soul-core">SOUL<br>CORE</div>
@@ -152,15 +173,14 @@
 
                 <!-- トラッシュ（コア用） -->
                 <div class="core-zone" id="zone-trash">
-                    <div class="zone-title">トラッシュ (コア)</div>
+                    <div class="zone-title">トラッシュ
+                        <span class="core-zone-title-minus">から取る</span>
+                        <span class="core-zone-title-puls">へ置く</span>
+                    </div>
                     <div class="core-zone-content" id="trash-content">
                         <div class="zone-core-counter" id="trash-counter">
                             <span class="core-label">C:</span>
                             <span class="core-num" id="trash-count">0</span>
-                            <div class="core-btn-col">
-                                <button class="core-ctrl-btn" id="trash-plus">+</button>
-                                <button class="core-ctrl-btn" id="trash-minus">-</button>
-                            </div>
                         </div>
                         <div class="soul-holder" id="trash-soul-holder"></div>
                     </div>

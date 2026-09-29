@@ -7,6 +7,12 @@ body {
     user-select: none;
 }
 
+/* ゲームのコンテナや、画面全体に適用する */
+body {
+    /* ダブルタップ拡大、ピンチズーム、デフォルトのスクロールなどを無効化する */
+    touch-action: none; 
+}
+
 h1 {
     font-size: 1.2rem;
     margin: 0 0 10px 0;
@@ -115,7 +121,6 @@ h1 {
     display: none;
     position: relative;
     width: 100%;
-    max-width: 1100px;
     min-height: 800px;
     background: #123512;
     border: 2px solid #333;
@@ -167,9 +172,11 @@ h1 {
 .card-trash-area:hover,
 .remove-area:hover,
 .field-area:hover,
-.hand-area:hover,
+.hand-area:hover{
+    background: rgba(82, 66, 66, 0.5);
+}
 .core-zone:hover {
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(226, 113, 113, 0.5);
 }
 
 /* 各ゾーンの幅配分 */
@@ -192,6 +199,7 @@ h1 {
     gap: 8px;
     overflow-x: auto;
     min-height: 110px;
+    height: 65%;
     align-items: center;
 }
 
@@ -207,6 +215,7 @@ h1 {
     gap: 8px;
     overflow-x: auto;
     min-height: 110px;
+    height: 65%;
     align-items: center;
 }
 
@@ -276,10 +285,18 @@ h1 {
     border: 2px dashed #4a7c59;
     border-radius: 8px;
     padding: 10px;
-    min-height: 160px; /* 上下に分けるため少しコンパクトに */
+    min-height: 50%; /* 上下に分けるため少しコンパクトに */
     position: relative;
     cursor: pointer;
     box-sizing: border-box;
+}
+
+.field-area-container{
+    display: flex;
+    gap: 58px;
+    flex-wrap: wrap;
+    height: 100%;
+    margin-left: 30px;
 }
 
 /* コア管理ゾーン群（縦並び） */
@@ -292,11 +309,48 @@ h1 {
 }
 
 .core-zone {
+    position: relative;
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid #444;
     border-radius: 6px;
     padding: 8px;
     cursor: pointer;
+}
+
+
+.core-zone-badge{
+    position: absolute;
+    top: -10px;   /* 上に少しはみ出させる */
+    right: -10px;  /* 右に少しはみ出させる */
+    
+    background-color: #ff4757; /* 目立つ色（追加なら赤や青など） */
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* 浮き出た感じを出すと綺麗 */
+    
+    /* 初期状態は非表示（ホバー中だけ出す） */
+    display: none;
+}
+
+.core-zone-title-puls{display: none;}
+.core-zone:hover .core-zone-title-puls{
+    color: rgb(61, 255, 36);
+    display:contents;
+}
+.core-zone:has(.zone-core-counter:hover) .core-zone-title-puls{
+    display: none;
+}
+.core-zone:has(.soul-core-elem:hover) .core-zone-title-puls{
+    display: none;
+}
+
+.core-zone-title-minus{display: none;}
+.core-zone:has(.zone-core-counter:hover) .core-zone-title-minus{
+    color: rgb(255, 134, 134);
+    display: contents;
 }
 
 .core-zone-content {
@@ -314,8 +368,19 @@ h1 {
     display: flex;
     align-items: center;
     gap: 6px;
+    min-width: 45%;
 }
 
+.zone-core-counter:hover{
+    background: rgba(218, 40, 40, 0.7);
+}
+
+.core-zone:has(.zone-core-counter:hover){
+    background: rgba(0, 0, 0, 0.35);
+}
+.core-zone:has(.soul-core-elem:hover){
+    background: rgba(0, 0, 0, 0.35);
+}
 .core-label {
     font-size: 0.9rem;
     color: #ffeb3b;
@@ -369,6 +434,7 @@ h1 {
     border-radius: 8px;
     padding: 10px;
     min-height: 160px;
+    height:160px;
     display: flex;
     gap: 10px;
     overflow-x: auto;
@@ -379,8 +445,8 @@ h1 {
 
 /* カードスタイル（サイズ：80px × 112px） */
 .card {
-    width: 80px;
-    height: 112px;
+    height: 100%;
+    aspect-ratio: 59 / 86;
     background: #fff;
     color: #000;
     border-radius: 4px;
@@ -455,26 +521,13 @@ h1 {
     align-self: flex-start;
     pointer-events: auto;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+    min-width: 75%;
 }
 
-.core-badge button {
-    background: #555;
-    color: #fff;
-    border: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.core-badge:hover{
+    background: rgba(218, 40, 40, 0.7);
 }
 
-.core-badge button:hover {
-    background: #777;
-}
 
 .card-soul-indicator {
     width: 32px;
@@ -495,6 +548,11 @@ h1 {
     align-self: flex-start;
     pointer-events: auto;
     cursor: pointer;
+}
+
+.card-soul-indicator:hover {
+    box-shadow: 0 0 12px 4px #57f128;
+    border: 2px solid #57f128;
 }
 
 .card-soul-indicator.selected {
@@ -522,10 +580,16 @@ h1 {
     flex-shrink: 0;
 }
 
+#soul-core:hover{
+    box-shadow: 0 0 15px 5px #57f128;
+    border: 2px solid #57f128;
+}
+
 #soul-core.selected {
     box-shadow: 0 0 15px 5px #ffeb3b;
     border: 2px solid #ffeb3b;
 }
+
 
 .floating-deck {
     display: flex;
@@ -583,7 +647,7 @@ button.action-btn:hover {
     border-radius: 8px;
     padding: 20px;
     width: 80%;
-    max-height: 85vh;
+    height: 65vh;
     overflow-y: auto;
     box-sizing: border-box;
 }
@@ -617,6 +681,7 @@ button.action-btn:hover {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    height: 20vh;
 }
 
 .close-modal-btn {
@@ -633,7 +698,7 @@ button.action-btn:hover {
 }
 
 .soul-core-badge {
-    color: #ff4444; /* あるいは好みの赤色 */
+    color: #ffeb3b; /* あるいは好みの赤色 */
     font-weight: bold;
 }
 

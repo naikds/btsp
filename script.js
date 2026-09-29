@@ -13,9 +13,11 @@ let state = {
         remove: []         // 除外ゾーン（カードデータの配列）
     },
     core: {
+        void: 999999999999999999114514,
         reserve: 3,
         life: 5,
-        trash: 0
+        trash: 0,
+        choice: 0
     },
     soulCore: {
         location: 'reserve', // 'reserve', 'trash', または カードID
@@ -80,8 +82,8 @@ function showSplitPreview(img) {
     }
     for (let r = 1; r < rows; r++) {
         ctx.beginPath();
-        ctx.moveTo(0, topOffset+(r * pHeight));
-        ctx.lineTo(img.width, topOffset+(r * pHeight));
+        ctx.moveTo(0, topOffset + (r * pHeight));
+        ctx.lineTo(img.width, topOffset + (r * pHeight));
         ctx.stroke();
     }
 
@@ -171,7 +173,7 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
     }
 
     state.cards = [];
-    state.zones = { deck: [], hand: [], field1: [],field2:[], temp: [], free: [], trash: [], remove: [] };
+    state.zones = { deck: [], hand: [], field1: [], field2: [], temp: [], free: [], trash: [], remove: [] };
     state.soulCore = { location: 'reserve' };
 
     state.cardConfigs.forEach(conf => {
@@ -198,6 +200,61 @@ document.getElementById('start-game-btn').addEventListener('click', () => {
         drawCard('hand');
     }
 });
+//testStart();
+function testStart() {
+
+    function createWhiteImage(width, height) {
+        // 一時的にCanvasを作成
+        const c = document.createElement('canvas');
+        c.width = width;
+        c.height = height;
+        const ctx = c.getContext('2d');
+
+        // 真っ白に塗る
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+
+        // Canvasの内容をData URL（base64）に変換
+        const dataUrl = c.toDataURL('image/png');
+
+        // 新しいImageオブジェクトを作成し、そのData URLをソースとして設定
+        const img = new Image();
+        img.src = dataUrl;
+        return img;
+    }
+
+    showSplitPreview(createWhiteImage(1201, 1362));
+    state.cardConfigs[0].count = 0;
+    state.cardConfigs[1].count = 1;
+
+    state.cards = [];
+    state.zones = { deck: [], hand: [], field1: [], field2: [], temp: [], free: [], trash: [], remove: [] };
+    state.soulCore = { location: 'reserve' };
+
+    state.cardConfigs.forEach(conf => {
+        for (let i = 0; i < conf.count; i++) {
+            const cardId = 'card-' + Math.random().toString(36).substr(2, 9);
+            state.cards.push({
+                id: cardId,
+                imgUrl: conf.imgUrl,
+                core: 0,
+                tapped: false
+            });
+            state.zones.deck.push(cardId);
+        }
+    });
+
+    shuffleArray(state.zones.deck);
+
+    document.getElementById('setup-container').style.display = 'none';
+    document.getElementById('playmat').style.display = 'block';
+
+    renderAll();
+
+    for (let i = 0; i < 4; i++) {
+        drawCard('hand');
+    }
+}
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -208,27 +265,30 @@ function shuffleArray(array) {
 
 // --- コア増減ロジック ---
 function setupCoreCounter(type) {
-    document.getElementById(`${type}-plus`).addEventListener('click', (e) => {
+    //右クリックでcohiceの中身を配置
+    document.getElementById(`zone-${type}`).addEventListener('click', (e) => {
+        e.preventDefault(); // ブラウザ標準の「名前を付けて保存」などのメニューを出さないようにする
         e.stopPropagation();
-        state.core[type]++;
+        if (state.core['choice'] > 0) {
+            state.core[type] += state.core['choice'];
+            state.core['choice'] = 0;
+        }
         renderCores();
     });
 
-    document.getElementById(`${type}-minus`).addEventListener('click', (e) => {
+    document.getElementById(`${type}-counter`).addEventListener('click', (e) => {
         e.stopPropagation();
         if (state.core[type] > 0) {
             state.core[type]--;
-            if (type === 'life') {
-                state.core['reserve']++; // ライフ減少時はリザーブが増える
-            }
-            renderCores();
+            state.core['choice']++;
         }
+        renderCores();
     });
 }
-['reserve', 'life', 'trash'].forEach(setupCoreCounter);
+['void', 'reserve', 'life', 'trash'].forEach(setupCoreCounter);
 
 function renderCores() {
-    ['reserve', 'life', 'trash'].forEach(type => {
+    ['choice', 'reserve', 'life', 'trash'].forEach(type => {
         document.getElementById(`${type}-count`).innerText = state.core[type];
     });
 }
@@ -303,6 +363,7 @@ document.getElementById('reset-game-btn').addEventListener('click', () => {
 
     // 3. コアとソウルコアの初期化
     state.core = {
+        choice:0,
         reserve: 3,
         life: 5,
         trash: 0
@@ -516,28 +577,18 @@ function createCardElement(cardData, isInField) {
     let coreText = `C:${cardData.core}`;
     //ソウルコアが乗っている場合文字追加
     if (state.soulCore.location === cardData.id) {
-        coreText += ` <span class="soul-core-badge">+1</span>`;
+        coreText += `<span class="soul-core-badge">+1</span>`;
     }
     coreBadge.innerHTML = `<span>${coreText}</span>`;
 
-    const btnPlus = document.createElement('button');
-    btnPlus.innerText = '+';
-    btnPlus.onclick = (e) => {
+    ui.onclick = (e)=>{
         e.stopPropagation();
-        cardData.core++;
+        if (cardData.core > 0){
+            cardData.core--;
+            state.core['choice']++;
+        } 
         renderAll();
-    };
-
-    const btnMinus = document.createElement('button');
-    btnMinus.innerText = '-';
-    btnMinus.onclick = (e) => {
-        e.stopPropagation();
-        if (cardData.core > 0) cardData.core--;
-        renderAll();
-    };
-
-    coreBadge.appendChild(btnPlus);
-    coreBadge.appendChild(btnMinus);
+    }
     ui.appendChild(coreBadge);
 
     // ソウルコアが乗っている場合のインジケーター描画
@@ -573,6 +624,12 @@ function createCardElement(cardData, isInField) {
             renderAll();
         } else {
             // 通常のクリック時の挙動
+            if(state.core['choice'] > 0 && isInField){
+                cardData.core += state.core['choice'];
+                state.core['choice'] = 0;
+                renderAll();
+                return;
+            }
             if (state.selected.type === 'soul' && isInField) {
                 state.soulCore.location = cardData.id;
                 state.selected = { type: null, id: null };
