@@ -630,6 +630,7 @@ function createCardElement(cardData, isInField) {
     }
 
     imgWrapper.addEventListener('pointerup', (e) => {
+        e.preventDefault();
         e.stopPropagation();
 
         const currentTime = new Date().getTime();
@@ -637,7 +638,6 @@ function createCardElement(cardData, isInField) {
 
         // 400ミリ秒以内にもう一度同じカードがクリックされたら
         if (tapInterval < 400 && tapInterval > 0 && isInField) {
-            e.preventDefault();
             cardData.tapped = !cardData.tapped;
             cardData.lastTapTime = 0; // リセット
             renderAll();
