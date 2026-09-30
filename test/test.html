@@ -214,6 +214,7 @@
         <div class="toggle-row">
             <span>④ JS: <code>touchend</code> の連続タップブロック</span>
             <button id="t-touchend" class="toggle-btn active">ON</button>
+            <input id="t-touchend-text" type="text" value="300">
         </div>
         <div class="toggle-row">
             <span>⑤ JS: <code>gesturestart</code> (ピンチズームブロック)</span>
@@ -321,7 +322,11 @@
         document.addEventListener('touchend', (e) => {
             if (!config.touchEndBlock) return;
             const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
+
+            const input = document.getElementById("t-touchend-text").value;
+            const waitTime = Number(input) || 300;
+
+            if (now - lastTouchEnd <= waitTime) {
                 e.preventDefault();
                 addLog('-> 連続タップ（ダブルタップズーム）をブロック！');
             }
