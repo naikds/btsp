@@ -452,6 +452,15 @@ h1 {
     text-align: center;
 }
 
+@media (max-width: 768px) {
+    .core-label{
+        font-size: 0.6rem;
+    }
+    .core-num  {
+        font-size: 0.7rem;
+    }
+  }
+
 .core-btn-col {
     display: flex;
     flex-direction: column;
@@ -490,14 +499,20 @@ h1 {
     border: 2px solid #555;
     border-radius: 8px;
     padding: 10px;
-    min-height: 160px;
-    height:160px;
+    min-height: 30vh;
+    height:30vh;
     display: flex;
     gap: 10px;
     overflow-x: auto;
     cursor: pointer;
     width: 100%;
     box-sizing: border-box;
+}
+@media (max-width: 768px) {
+    .hand-area {
+        min-height: 20vh;
+        height:20vh;
+    }
 }
 
 /* カードスタイル（サイズ：80px × 112px） */

@@ -9,9 +9,6 @@
 </head>
 
 <body>
-
-    <h1 class="pc-only-contents">バトスピ 一人回しツール</h1>
-
     <!-- セットアップ・分割確認画面 -->
     <div id="setup-container">
         <h3>1. デッキ画像のアップロードと分割設定</h3>
@@ -48,7 +45,7 @@
     <div id="playmat">
         <div class="most-top-row">
             <button class="action-btn" id="reset-game-btn" style="background:#555;">リセット</button>
-            <div id="guide-msg" class="pc-only-contents">操作ガイド: カードをフィールドからトラッシュや除外へ移動したり、各置き場の一括ボタンが使えます。</div>
+            <div id="guide-msg" class="pc-only-contents">操作ガイド: カードを選択して別の場所に移動できます。全画面表示にするとちょっと使いやすいかも・・・</div>
             <div class="deck-area notpc-only-contents">
                 <div class="zone-title">山札 (<span data-num="deck-count">0</span>枚)</div>
                 <div class="floating-deck">
@@ -114,7 +111,7 @@
         </div>
 
         <!-- メインプレイエリア（フィールド ＋ 右側の縦並びコアゾーン） -->
-        <div class="zone-title pc-only-contents">フィールド</div>
+        <!-- <div class="zone-title pc-only-contents">フィールド</div> -->
         <div class="main-play-row">
             <!-- フィールドエリア -->
             <!-- 左側：上下に並べるフィールド群のラッパー -->
@@ -211,7 +208,7 @@
         </div>
 
         <!-- 手札エリア -->
-        <div class="zone-title pc-only-contents">手札</div>
+        <!-- <div class="zone-title pc-only-contents">手札</div> -->
         <div class="hand-area" id="zone-hand"></div>
     </div>
 
