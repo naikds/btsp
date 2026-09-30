@@ -129,7 +129,6 @@ function showSplitPreview(img) {
             btnPlus.innerText = '+';
 
             btnMinus.addEventListener('pointerup', (e) => {
-                e.stopPropagation();
                 e.preventDefault();
                 if (configObj.count > 0) {
                     configObj.count--;
@@ -139,7 +138,6 @@ function showSplitPreview(img) {
             });
             btnPlus.addEventListener('pointerup', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
                 configObj.count++;
                 countSpan.innerText = configObj.count;
                 updateTotalCount();
@@ -270,7 +268,6 @@ function setupCoreCounter(type) {
     //右クリックでcohiceの中身を配置
     document.getElementById(`zone-${type}`).addEventListener('pointerup', (e) => {
         e.preventDefault(); // ブラウザ標準の「名前を付けて保存」などのメニューを出さないようにする
-        e.stopPropagation();
         if (state.core['choice'] > 0) {
             state.core[type] += state.core['choice'];
             state.core['choice'] = 0;
@@ -280,7 +277,6 @@ function setupCoreCounter(type) {
 
     document.getElementById(`${type}-counter`).addEventListener('pointerup', (e) => {
         e.preventDefault();
-        e.stopPropagation();
         if (state.core[type] > 0) {
             state.core[type]--;
             state.core['choice']++;
@@ -528,7 +524,6 @@ dropZones.forEach(zone => {
 // ソウルコア自体のクリック選択
 document.getElementById('soul-core').addEventListener('pointerup', (e) => {
     e.preventDefault();
-    e.stopPropagation();
     state.selected = { type: 'soul', id: null };
     renderAll();
 });
@@ -615,7 +610,6 @@ function createCardElement(cardData, isInField) {
 
     ui.addEventListener('pointerup', (e) => {
         e.preventDefault();
-        e.stopPropagation();
         if (cardData.core > 0) {
             cardData.core--;
             state.core['choice']++;
@@ -633,7 +627,6 @@ function createCardElement(cardData, isInField) {
 
         soulIndicator.addEventListener('pointerup', (e) => {
             e.preventDefault();
-            e.stopPropagation();
             state.selected = { type: 'soul', id: null };
             renderAll();
         });
@@ -648,7 +641,6 @@ function createCardElement(cardData, isInField) {
     // タップ判定は透明オーバーレイ側で行う
     touchOverlay.addEventListener('pointerup', (e) => {
         e.preventDefault();
-        e.stopPropagation();
 
         const currentTime = new Date().getTime();
         const tapInterval = currentTime - cardData.lastTapTime;
@@ -728,7 +720,6 @@ function _createCardElement(cardData, isInField) {
 
     ui.addEventListener('pointerup', (e) => {
         e.preventDefault();
-        e.stopPropagation();
         if (cardData.core > 0) {
             cardData.core--;
             state.core['choice']++;
@@ -746,7 +737,6 @@ function _createCardElement(cardData, isInField) {
 
         soulIndicator.addEventListener('pointerup', (e) => {
             e.preventDefault(); 
-            e.stopPropagation();
             state.selected = { type: 'soul', id: null };
             renderAll();
         });
@@ -760,7 +750,6 @@ function _createCardElement(cardData, isInField) {
 
     imgWrapper.addEventListener('pointerup', (e) => {
         e.preventDefault();
-        e.stopPropagation();
 
         const currentTime = new Date().getTime();
         const tapInterval = currentTime - cardData.lastTapTime;
@@ -837,7 +826,6 @@ function renderSoulCore() {
     // クリックされたらソウルコアを選択状態にする
     soulCoreElem.addEventListener('pointerup', (e) => {
         e.preventDefault();
-        e.stopPropagation();
         state.selected = { type: 'soul', id: null };
         renderAll();
     });
@@ -900,7 +888,6 @@ function renderModal() {
 
         card.addEventListener('pointerup', (e) => {
             e.preventDefault();
-            e.stopPropagation();
             if (state.modal.selectedId === cardData.id) {
                 state.modal.selectedId = null;
             } else {
@@ -967,12 +954,13 @@ document.getElementById('playmat').addEventListener('pointerup', (e) => {
     }
 });
 
-// let lastTouchEnd = 0;
-// document.addEventListener('touchend', function(event) {
-//     const now = (new Date()).getTime();
-//     if (now - lastTouchEnd <= 300) {
-//         event.preventDefault();
-//     }
-//     lastTouchEnd = now;
-// }, { passive: false });
+//効いてた。各エリアのズームとかは起きなくなった。カード上のズームだけおきる。テストいる
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        event.preventDefault();
+    }
+    lastTouchEnd = now;
+}, { passive: false });
 
