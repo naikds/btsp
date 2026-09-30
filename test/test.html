@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>スマホタッチ挙動・完全防衛ラボ</title>
+    <title>スマホタッチ挙動・完全完全ラボ（test.jpeg対応）</title>
     <style>
         body {
             font-family: sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             background-color: #f0f2f5;
             color: #333;
         }
@@ -27,13 +27,13 @@
         /* コントロールパネル */
         .control-panel {
             background: #fff;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .control-panel h2 {
@@ -47,17 +47,17 @@
             justify-content: space-between;
             align-items: center;
             background: #f8f9fa;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
 
         .toggle-btn {
             background: #dc3545;
             color: white;
             border: none;
-            padding: 5px 12px;
-            font-size: 0.8rem;
+            padding: 4px 10px;
+            font-size: 0.75rem;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
@@ -69,17 +69,20 @@
             background: #28a745;
         }
 
-        /* 実験ステージ */
+        /* 実験ステージ全体 */
         .stage {
             background: #fff;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .stage h3 {
             font-size: 0.85rem;
-            margin: 0 0 15px 0;
+            margin: 0 0 10px 0;
             color: #444;
         }
 
@@ -90,12 +93,14 @@
             align-items: center;
         }
 
+        /* 元の基本パーツ */
         .tap-target {
             padding: 12px 20px;
             font-size: 1rem;
             border-radius: 6px;
             text-align: center;
             cursor: pointer;
+            user-select: none;
         }
 
         button.tap-target {
@@ -125,94 +130,149 @@
             border-radius: 6px;
         }
 
+        /* 追加の横スクロールエリア */
+        .sim-scroll-box {
+            width: 100%;
+            height: 100px;
+            background: #e9ecef;
+            border: 2px dashed #adb5bd;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 10px;
+            overflow-x: scroll;
+            box-sizing: border-box;
+        }
+
+        .sim-card {
+            width: 60px;
+            height: 80px;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sim-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 3px;
+        }
+
+        .add-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
         /* ログ表示エリア */
         .log-area {
-            margin-top: 20px;
+            margin-top: 15px;
             background: #212529;
             color: #00ff00;
             padding: 10px;
             border-radius: 5px;
             font-family: monospace;
             font-size: 0.75rem;
-            height: 140px;
+            height: 120px;
             overflow-y: auto;
         }
     </style>
 </head>
 <body>
 
-    <h1>スマホタッチ挙動・完全防衛ラボ</h1>
-    <p class="desc">世の中でよく使われる7大防止テクニックを個別に切り替えて挙動をテストできます。</p>
+    <h1>スマホタッチ挙動・完全完全ラボ（test.jpeg対応）</h1>
+    <p class="desc">すべての画像に同階層の `test.jpeg` を使用して検証できます。</p>
 
-    <!-- 防止機能ごとのコントロールパネル -->
+    <!-- コントロールパネル -->
     <div class="control-panel">
-        <h2>防衛オプション一覧</h2>
-        
+        <h2>防衛オプション</h2>
         <div class="toggle-row">
-            <span>① CSS: <code>touch-action: none</code> (スクロール/ズーム禁止)</span>
+            <span>① CSS: <code>touch-action: none</code></span>
             <button id="t-css-action" class="toggle-btn active">ON</button>
         </div>
-
         <div class="toggle-row">
-            <span>② CSS: <code>user-select: none</code> (長押しテキスト選択禁止)</span>
+            <span>② CSS: <code>user-select: none</code></span>
             <button id="t-user-select" class="toggle-btn active">ON</button>
         </div>
-
         <div class="toggle-row">
             <span>③ JS: <code>pointerup</code> の <code>preventDefault()</code></span>
             <button id="t-pointerup" class="toggle-btn active">ON</button>
         </div>
-
         <div class="toggle-row">
             <span>④ JS: <code>touchend</code> の連続タップブロック</span>
             <button id="t-touchend" class="toggle-btn active">ON</button>
         </div>
-
         <div class="toggle-row">
-            <span>⑤ JS: <code>gesturestart</code> のピンチズームブロック</span>
+            <span>⑤ JS: <code>gesturestart</code> (ピンチズームブロック)</span>
             <button id="t-gesture" class="toggle-btn active">ON</button>
         </div>
-
         <div class="toggle-row">
-            <span>⑥ JS: <code>contextmenu</code> の長押しメニューブロック</span>
+            <span>⑥ JS: <code>contextmenu</code> (長押しメニューブロック)</span>
             <button id="t-context" class="toggle-btn active">ON</button>
-        </div>
-
-        <div class="toggle-row">
-            <span>⑦ CSS: <code>overflow: hidden</code> (ボディ全体固定)</span>
-            <button id="t-body-overflow" class="toggle-btn">OFF</button>
         </div>
     </div>
 
     <!-- 実験ステージ -->
     <div class="stage">
-        <h3>実験用サンプルパーツ</h3>
-        <div class="samples-container">
-            <button class="tap-target test-part">ボタン</button>
-            <div class="tap-target test-part">div要素</div>
-            <span class="tap-target test-part">span要素</span>
-            <img src="test.jpeg" class="tap-target test-part" alt="サンプル画像">
+        <!-- 元の基本パーツ群 -->
+        <div>
+            <h3>① 基本パーツ（ボタン / div / span / img）</h3>
+            <div class="samples-container">
+                <button class="tap-target test-part">ボタン</button>
+                <div class="tap-target test-part">div要素</div>
+                <span class="tap-target test-part">span要素</span>
+                <img src="test.jpeg" class="tap-target test-part" alt="test画像">
+            </div>
+        </div>
+
+        <!-- 横スクロールエリア -->
+        <div>
+            <h3>② 横スクロールエリア内のカード（画像入り含む）</h3>
+            <div class="sim-scroll-box" id="scroll-container">
+                <div class="sim-card test-part">Card 1</div>
+                <div class="sim-card test-part"><img src="test.jpeg" alt="test画像"></div>
+                <div class="sim-card test-part">Card 3</div>
+            </div>
+        </div>
+
+        <!-- 動的生成エリア -->
+        <div>
+            <h3>③ 動的生成カードテスト（画像付きで生成）</h3>
+            <button class="add-btn" id="spawn-card-btn">画像付きカードを新しく追加する</button>
+            <div class="sim-scroll-box" id="dynamic-container" style="margin-top: 10px;">
+                <!-- ここにJSで動的追加 -->
+            </div>
         </div>
     </div>
 
     <!-- 動作ログ -->
     <div class="log-area" id="log-box">
-        [ログ] ラボのシステムが起動しました。<br>
+        [ログ] ラボ起動完了。<br>
     </div>
 
     <script>
         const logBox = document.getElementById('log-box');
-        const testParts = document.querySelectorAll('.test-part');
 
-        // 設定オブジェクト
         const config = {
             cssTouchAction: true,
             userSelect: true,
             pointerUpPrevent: true,
             touchEndBlock: true,
             gestureBlock: true,
-            contextBlock: true,
-            bodyOverflow: false
+            contextBlock: true
         };
 
         function addLog(text) {
@@ -231,30 +291,31 @@
             });
         }
 
-        // ① touch-action
-        bindToggle('t-css-action', 'cssTouchAction', (isOn) => {
-            testParts.forEach(p => p.style.touchAction = isOn ? 'none' : 'auto');
-        });
-        testParts.forEach(p => p.style.touchAction = 'none');
+        function applyStyles(element) {
+            element.style.touchAction = config.cssTouchAction ? 'none' : 'auto';
+            element.style.userSelect = config.userSelect ? 'none' : 'auto';
+        }
 
-        // ② user-select
-        bindToggle('t-user-select', 'userSelect', (isOn) => {
-            testParts.forEach(p => p.style.userSelect = isOn ? 'none' : 'auto');
-        });
-        testParts.forEach(p => p.style.userSelect = 'none');
-
-        // ③ pointerup preventDefault
-        bindToggle('t-pointerup', 'pointerUpPrevent');
-        testParts.forEach(part => {
-            part.addEventListener('pointerup', (e) => {
+        // すべてのパーツにイベントとスタイルを付与
+        function setupCardEvents(card) {
+            applyStyles(card);
+            card.addEventListener('pointerup', (e) => {
                 if (config.pointerUpPrevent) e.preventDefault();
-                addLog(`${part.tagName} タップ (pointerup防止: ${config.pointerUpPrevent})`);
-                part.style.transform = 'scale(0.95)';
-                setTimeout(() => part.style.transform = 'scale(1)', 100);
+                addLog(`${card.tagName || 'DIV'} がタップされました`);
             });
-        });
+        }
 
-        // ④ touchend 連続タップブロック
+        document.querySelectorAll('.test-part').forEach(setupCardEvents);
+
+        // トグルの動作設定
+        bindToggle('t-css-action', 'cssTouchAction', (isOn) => {
+            document.querySelectorAll('.test-part').forEach(p => p.style.touchAction = isOn ? 'none' : 'auto');
+        });
+        bindToggle('t-user-select', 'userSelect', (isOn) => {
+            document.querySelectorAll('.test-part').forEach(p => p.style.userSelect = isOn ? 'none' : 'auto');
+        });
+        bindToggle('t-pointerup', 'pointerUpPrevent');
+        
         let lastTouchEnd = 0;
         bindToggle('t-touchend', 'touchEndBlock');
         document.addEventListener('touchend', (e) => {
@@ -267,30 +328,39 @@
             lastTouchEnd = now;
         }, { passive: false });
 
-        // ⑤ gesturestart (iOSピンチズーム防止)
         bindToggle('t-gesture', 'gestureBlock');
         document.addEventListener('gesturestart', (e) => {
             if (config.gestureBlock) {
                 e.preventDefault();
-                addLog('-> ピンチズーム(gesturestart)をブロック！');
+                addLog('-> ピンチズームをブロック！');
             }
         });
 
-        // ⑥ contextmenu (長押しメニュー防止)
         bindToggle('t-context', 'contextBlock');
         document.addEventListener('contextmenu', (e) => {
             if (config.contextBlock) {
                 e.preventDefault();
-                addLog('-> コンテキストメニュー（長押し保存など）をブロック！');
+                addLog('-> 長押しメニューをブロック！');
             }
         });
 
-        // ⑦ body overflow hidden (画面全体のスクロール自体を完全に殺す)
-        bindToggle('t-body-overflow', 'bodyOverflow', (isOn) => {
-            document.body.style.overflow = isOn ? 'hidden' : 'auto';
-            document.documentElement.style.overflow = isOn ? 'hidden' : 'auto';
+        // 動的カード生成（test.jpegの画像付き）
+        let cardCount = 0;
+        const dynamicContainer = document.getElementById('dynamic-container');
+        document.getElementById('spawn-card-btn').addEventListener('click', () => {
+            cardCount++;
+            const newCard = document.createElement('div');
+            newCard.className = 'sim-card test-part';
+            
+            const img = document.createElement('img');
+            img.src = 'test.jpeg';
+            img.alt = 'test画像';
+            newCard.appendChild(img);
+            
+            setupCardEvents(newCard);
+            dynamicContainer.appendChild(newCard);
+            addLog(`動的画像カード #${cardCount} を追加`);
         });
-
     </script>
 </body>
 </html>
