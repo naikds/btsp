@@ -374,6 +374,7 @@ document.getElementById('reset-game-btn').addEventListener('pointerup', (e) => {
 
     // 3. コアとソウルコアの初期化
     state.core = {
+        void:9999,
         choice: 0,
         reserve: 3,
         life: 5,
