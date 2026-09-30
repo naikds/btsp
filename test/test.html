@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スマホタッチ挙動・完全防衛ラボ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        p.desc {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0;
+        }
+
+        /* コントロールパネル */
+        .control-panel {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-panel h2 {
+            font-size: 0.9rem;
+            margin: 0 0 5px 0;
+            color: #007bff;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .toggle-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        .toggle-btn.active {
+            background: #28a745;
+        }
+
+        /* 実験ステージ */
+        .stage {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stage h3 {
+            font-size: 0.85rem;
+            margin: 0 0 15px 0;
+            color: #444;
+        }
+
+        .samples-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .tap-target {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        button.tap-target {
+            background: #6c757d;
+            color: white;
+            border: none;
+        }
+
+        div.tap-target {
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+
+        span.tap-target {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+
+        img.tap-target {
+            width: 70px;
+            height: 70px;
+            background: #ccc;
+            object-fit: cover;
+            padding: 0;
+            border-radius: 6px;
+        }
+
+        /* ログ表示エリア */
+        .log-area {
+            margin-top: 20px;
+            background: #212529;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            height: 140px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>スマホタッチ挙動・完全防衛ラボ</h1>
+    <p class="desc">世の中でよく使われる7大防止テクニックを個別に切り替えて挙動をテストできます。</p>
+
+    <!-- 防止機能ごとのコントロールパネル -->
+    <div class="control-panel">
+        <h2>防衛オプション一覧</h2>
+        
+        <div class="toggle-row">
+            <span>① CSS: <code>touch-action: none</code> (スクロール/ズーム禁止)</span>
+            <button id="t-css-action" class="toggle-btn active">ON</button>
+        </div>
+
+        <div class="toggle-row">
+            <span>② CSS: <code>user-select: none</code> (長押しテキスト選択禁止)</span>
+            <button id="t-user-select" class="toggle-btn active">ON</button>
+        </div>
+
+        <div class="toggle-row">
+            <span>③ JS: <code>pointerup</code> の <code>preventDefault()</code></span>
+            <button id="t-pointerup" class="toggle-btn active">ON</button>
+        </div>
+
+        <div class="toggle-row">
+            <span>④ JS: <code>touchend</code> の連続タップブロック</span>
+            <button id="t-touchend" class="toggle-btn active">ON</button>
+        </div>
+
+        <div class="toggle-row">
+            <span>⑤ JS: <code>gesturestart</code> のピンチズームブロック</span>
+            <button id="t-gesture" class="toggle-btn active">ON</button>
+        </div>
+
+        <div class="toggle-row">
+            <span>⑥ JS: <code>contextmenu</code> の長押しメニューブロック</span>
+            <button id="t-context" class="toggle-btn active">ON</button>
+        </div>
+
+        <div class="toggle-row">
+            <span>⑦ CSS: <code>overflow: hidden</code> (ボディ全体固定)</span>
+            <button id="t-body-overflow" class="toggle-btn">OFF</button>
+        </div>
+    </div>
+
+    <!-- 実験ステージ -->
+    <div class="stage">
+        <h3>実験用サンプルパーツ</h3>
+        <div class="samples-container">
+            <button class="tap-target test-part">ボタン</button>
+            <div class="tap-target test-part">div要素</div>
+            <span class="tap-target test-part">span要素</span>
+            <img src="test.jpeg" class="tap-target test-part" alt="サンプル画像">
+        </div>
+    </div>
+
+    <!-- 動作ログ -->
+    <div class="log-area" id="log-box">
+        [ログ] ラボのシステムが起動しました。<br>
+    </div>
+
+    <script>
+        const logBox = document.getElementById('log-box');
+        const testParts = document.querySelectorAll('.test-part');
+
+        // 設定オブジェクト
+        const config = {
+            cssTouchAction: true,
+            userSelect: true,
+            pointerUpPrevent: true,
+            touchEndBlock: true,
+            gestureBlock: true,
+            contextBlock: true,
+            bodyOverflow: false
+        };
+
+        function addLog(text) {
+            logBox.innerHTML += `[${new Date().toLocaleTimeString()}] ${text}<br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function bindToggle(id, configKey, callback) {
+            const btn = document.getElementById(id);
+            btn.addEventListener('click', () => {
+                config[configKey] = !config[configKey];
+                btn.innerText = config[configKey] ? 'ON' : 'OFF';
+                btn.className = config[configKey] ? 'toggle-btn active' : 'toggle-btn';
+                if (callback) callback(config[configKey]);
+                addLog(`${id} を [${config[configKey] ? 'ON' : 'OFF'}] にしました`);
+            });
+        }
+
+        // ① touch-action
+        bindToggle('t-css-action', 'cssTouchAction', (isOn) => {
+            testParts.forEach(p => p.style.touchAction = isOn ? 'none' : 'auto');
+        });
+        testParts.forEach(p => p.style.touchAction = 'none');
+
+        // ② user-select
+        bindToggle('t-user-select', 'userSelect', (isOn) => {
+            testParts.forEach(p => p.style.userSelect = isOn ? 'none' : 'auto');
+        });
+        testParts.forEach(p => p.style.userSelect = 'none');
+
+        // ③ pointerup preventDefault
+        bindToggle('t-pointerup', 'pointerUpPrevent');
+        testParts.forEach(part => {
+            part.addEventListener('pointerup', (e) => {
+                if (config.pointerUpPrevent) e.preventDefault();
+                addLog(`${part.tagName} タップ (pointerup防止: ${config.pointerUpPrevent})`);
+                part.style.transform = 'scale(0.95)';
+                setTimeout(() => part.style.transform = 'scale(1)', 100);
+            });
+        });
+
+        // ④ touchend 連続タップブロック
+        let lastTouchEnd = 0;
+        bindToggle('t-touchend', 'touchEndBlock');
+        document.addEventListener('touchend', (e) => {
+            if (!config.touchEndBlock) return;
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+                addLog('-> 連続タップ（ダブルタップズーム）をブロック！');
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+
+        // ⑤ gesturestart (iOSピンチズーム防止)
+        bindToggle('t-gesture', 'gestureBlock');
+        document.addEventListener('gesturestart', (e) => {
+            if (config.gestureBlock) {
+                e.preventDefault();
+                addLog('-> ピンチズーム(gesturestart)をブロック！');
+            }
+        });
+
+        // ⑥ contextmenu (長押しメニュー防止)
+        bindToggle('t-context', 'contextBlock');
+        document.addEventListener('contextmenu', (e) => {
+            if (config.contextBlock) {
+                e.preventDefault();
+                addLog('-> コンテキストメニュー（長押し保存など）をブロック！');
+            }
+        });
+
+        // ⑦ body overflow hidden (画面全体のスクロール自体を完全に殺す)
+        bindToggle('t-body-overflow', 'bodyOverflow', (isOn) => {
+            document.body.style.overflow = isOn ? 'hidden' : 'auto';
+            document.documentElement.style.overflow = isOn ? 'hidden' : 'auto';
+        });
+
+    </script>
+</body>
+</html>
