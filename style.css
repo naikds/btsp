@@ -650,6 +650,7 @@ h1 {
     text-align: center;
     line-height: 1.1;
     flex-shrink: 0;
+    pointer-events: auto;
 }
 
 #soul-core:hover{
