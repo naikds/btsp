@@ -1,3 +1,4 @@
+
 // --- アプリケーションの状態（Single Source of Truth） ---
 let state = {
     cardConfigs: [],       // デッキ構築時の設定
@@ -13,7 +14,7 @@ let state = {
         remove: []         // 除外ゾーン（カードデータの配列）
     },
     core: {
-        void: 999999999999999999114514,
+        void: 9999,
         reserve: 3,
         life: 5,
         trash: 0,
@@ -172,24 +173,7 @@ document.getElementById('start-game-btn').addEventListener('pointerup', () => {
         return;
     }
 
-    state.cards = [];
-    state.zones = { deck: [], hand: [], field1: [], field2: [], temp: [], free: [], trash: [], remove: [] };
-    state.soulCore = { location: 'reserve' };
-
-    state.cardConfigs.forEach(conf => {
-        for (let i = 0; i < conf.count; i++) {
-            const cardId = 'card-' + Math.random().toString(36).substr(2, 9);
-            state.cards.push({
-                id: cardId,
-                imgUrl: conf.imgUrl,
-                core: 0,
-                tapped: false
-            });
-            state.zones.deck.push(cardId);
-        }
-    });
-
-    shuffleArray(state.zones.deck);
+    initGameElements();
 
     document.getElementById('setup-container').style.display = 'none';
     document.getElementById('playmat').style.display = 'block';
@@ -200,7 +184,6 @@ document.getElementById('start-game-btn').addEventListener('pointerup', () => {
         drawCard('hand');
     }
 });
-//testStart();
 function testStart() {
 
     function createWhiteImage(width, height) {
@@ -224,27 +207,8 @@ function testStart() {
     }
 
     showSplitPreview(createWhiteImage(1201, 1362));
-    state.cardConfigs[0].count = 0;
-    state.cardConfigs[1].count = 1;
 
-    state.cards = [];
-    state.zones = { deck: [], hand: [], field1: [], field2: [], temp: [], free: [], trash: [], remove: [] };
-    state.soulCore = { location: 'reserve' };
-
-    state.cardConfigs.forEach(conf => {
-        for (let i = 0; i < conf.count; i++) {
-            const cardId = 'card-' + Math.random().toString(36).substr(2, 9);
-            state.cards.push({
-                id: cardId,
-                imgUrl: conf.imgUrl,
-                core: 0,
-                tapped: false
-            });
-            state.zones.deck.push(cardId);
-        }
-    });
-
-    shuffleArray(state.zones.deck);
+    initGameElements();
 
     document.getElementById('setup-container').style.display = 'none';
     document.getElementById('playmat').style.display = 'block';
@@ -254,6 +218,48 @@ function testStart() {
     for (let i = 0; i < 4; i++) {
         drawCard('hand');
     }
+}
+
+// --- グローバルまたは状態オブジェクトにソウルコアのDOMを持たせる ---
+let cachedSoulCoreElem = null;
+
+function initGameElements() {
+    // 1. ソウルコアのDOMを最初に1回だけ作る
+    if (!cachedSoulCoreElem) {
+        cachedSoulCoreElem = document.createElement('div');
+        cachedSoulCoreElem.id = 'soul-core';
+        cachedSoulCoreElem.className = 'soul-core-elem';
+        cachedSoulCoreElem.innerHTML = 'SOUL<br>CORE';
+        cachedSoulCoreElem.addEventListener('pointerup', (e) => {
+            e.preventDefault();
+            state.selected = { type: 'soul', id: null };
+            renderAll();
+        });
+    }
+
+    // 2. 40枚分のカードデータとDOMを生成する
+    state.cards = [];
+    state.cardConfigs.forEach(conf => {
+        for (let i = 0; i < conf.count; i++) {
+            const cardId = 'card-' + Math.random().toString(36).substr(2, 9);
+            
+            const cardData = {
+                id: cardId,
+                imgUrl: conf.imgUrl,
+                core: 0,
+                tapped: false,
+                lastTapTime: 0,
+                element: null // ここにDOMを保持
+            };
+
+            // カードのDOMを生成してキャッシュ
+            cardData.element = createCardElementOnce(cardData);
+            state.cards.push(cardData);
+            state.zones.deck.push(cardId);
+        }
+    });
+
+    shuffleArray(state.zones.deck);
 }
 
 function shuffleArray(array) {
@@ -268,6 +274,7 @@ function setupCoreCounter(type) {
     //右クリックでcohiceの中身を配置
     document.getElementById(`zone-${type}`).addEventListener('pointerup', (e) => {
         e.preventDefault(); // ブラウザ標準の「名前を付けて保存」などのメニューを出さないようにする
+        e.stopPropagation();
         if (state.core['choice'] > 0) {
             state.core[type] += state.core['choice'];
             state.core['choice'] = 0;
@@ -277,6 +284,7 @@ function setupCoreCounter(type) {
 
     document.getElementById(`${type}-counter`).addEventListener('pointerup', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (state.core[type] > 0) {
             state.core[type]--;
             state.core['choice']++;
@@ -521,12 +529,7 @@ dropZones.forEach(zone => {
     });
 });
 
-// ソウルコア自体のクリック選択
-document.getElementById('soul-core').addEventListener('pointerup', (e) => {
-    e.preventDefault();
-    state.selected = { type: 'soul', id: null };
-    renderAll();
-});
+
 
 // --- 描画エンジン（Render） ---
 function renderAll() {
@@ -560,91 +563,89 @@ function renderZones() {
 
     Object.keys(zoneContainers).forEach(zoneName => {
         const container = zoneContainers[zoneName];
-        container.innerHTML = '';
+        container.innerHTML = ''; // コンテナのクリアは行うが、DOM自体は使い回す
+
         state.zones[zoneName].forEach(cardId => {
             const cardData = findCardData(cardId);
-            const cardElem = createCardElement(cardData, zoneName === 'field1' || zoneName === 'field2');
-            container.appendChild(cardElem);
+            if (!cardData || !cardData.element) return;
+
+            const isInField = (zoneName === 'field1' || zoneName === 'field2');
+
+            // 1. クラスの状態を最新にする
+            updateCardStateVisual(cardData, isInField);
+
+            // 2. 既存のDOM要素をコンテナに配置（移動）する
+            container.appendChild(cardData.element);
         });
     });
 }
 
-function createCardElement(cardData, isInField) {
-    const card = document.createElement('div');
-    card.className = 'card';
+// 状態が変わったときにカードの見た目だけを更新する関数
+function updateCardStateVisual(cardData, isInField) {
+    const card = cardData.element;
+    
+    // tapped, in-field, selected の切り替え
     if (cardData.tapped && isInField) card.classList.add('tapped');
+    else card.classList.remove('tapped');
+
     if (isInField) card.classList.add('in-field');
+    else card.classList.remove('in-field');
+
     if (state.selected.type === 'card' && state.selected.id === cardData.id) {
         card.classList.add('selected');
+    } else {
+        card.classList.remove('selected');
     }
+
+    // コアバッジのテキスト更新
+    const coreBadgeSpan = card.querySelector('.core-badge span');
+    if (coreBadgeSpan) {
+        let coreText = `C:${cardData.core}`;
+        if (state.soulCore.location === cardData.id) {
+            coreText += `<span class="soul-core-badge">+1</span>`;
+        }
+        coreBadgeSpan.innerHTML = coreText;
+    }
+}
+
+
+function createCardElementOnce(cardData) {
+    const card = document.createElement('div');
+    card.className = 'card';
     card.id = cardData.id;
 
     const imgWrapper = document.createElement('div');
     imgWrapper.className = 'card-img-wrapper';
-
-    // 1. 下の層：見た目の画像（タッチを無効化してブラウザのズームを防ぐ）
     const img = document.createElement('img');
     img.src = cardData.imgUrl;
-    img.style.pointerEvents = 'none';
-    img.style['touch-action'] = 'none';
     imgWrapper.appendChild(img);
-
-    // 2. 上の層：透明な操作用オーバーレイ（CSSクラスを使用）
-    const touchOverlay = document.createElement('div');
-    touchOverlay.className = 'card-touch-overlay';
-    imgWrapper.appendChild(touchOverlay);
-
     card.appendChild(imgWrapper);
 
     const ui = document.createElement('div');
     ui.className = 'card-ui';
     card.appendChild(ui);
 
-    // コアバッジの描画
+    // コアバッジ
     const coreBadge = document.createElement('div');
     coreBadge.className = 'core-badge';
-    let coreText = `C:${cardData.core}`;
-    if (state.soulCore.location === cardData.id) {
-        coreText += `<span class="soul-core-badge">+1</span>`;
-    }
-    coreBadge.innerHTML = `<span>${coreText}</span>`;
-
+    coreBadge.innerHTML = `<span>C:0</span>`;
+    
     ui.addEventListener('pointerup', (e) => {
         e.preventDefault();
         if (cardData.core > 0) {
             cardData.core--;
             state.core['choice']++;
+            renderAll();
         }
-        renderAll();
     });
     ui.appendChild(coreBadge);
 
-    // ソウルコアが乗っている場合のインジケーター描画
-    if (state.soulCore.location === cardData.id) {
-        const soulIndicator = document.createElement('div');
-        soulIndicator.className = 'card-soul-indicator';
-        if (state.selected.type === 'soul') soulIndicator.classList.add('selected');
-        soulIndicator.innerHTML = 'SOUL<br>CORE';
-
-        soulIndicator.addEventListener('pointerup', (e) => {
-            e.preventDefault();
-            state.selected = { type: 'soul', id: null };
-            renderAll();
-        });
-        ui.appendChild(soulIndicator);
-    }
-
-    // カードデータに初期値がなければ持たせる
-    if (cardData.lastTapTime === undefined) {
-        cardData.lastTapTime = 0;
-    }
-
-    // タップ判定は透明オーバーレイ側で行う
-    touchOverlay.addEventListener('pointerup', (e) => {
+    // タップやクリックのイベント設定（一度設定すればDOMを壊さないのでズレない）
+    imgWrapper.addEventListener('pointerup', (e) => {
         e.preventDefault();
-
         const currentTime = new Date().getTime();
         const tapInterval = currentTime - cardData.lastTapTime;
+        const isInField = state.zones.field1.includes(cardData.id) || state.zones.field2.includes(cardData.id);
 
         if (tapInterval < 400 && tapInterval > 0 && isInField) {
             cardData.tapped = !cardData.tapped;
@@ -666,12 +667,11 @@ function createCardElement(cardData, isInField) {
 
             state.selected = { type: 'card', id: cardData.id };
             renderAll();
-
             cardData.lastTapTime = currentTime;
         }
     });
 
-    // 右クリックでプレビュー
+    // 右クリックプレビュー
     card.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         const previewModal = document.getElementById('card-preview-modal');
@@ -680,50 +680,43 @@ function createCardElement(cardData, isInField) {
         previewModal.style.display = 'flex';
     });
 
-    document.getElementById('card-preview-modal').addEventListener('pointerup', (e) => {
-        e.preventDefault();
-        document.getElementById('card-preview-modal').style.display = 'none';
-    });
-
     return card;
 }
 
-// 【変更後：renderSoulCore】
 function renderSoulCore() {
-    // 1. 既存のソウルコア要素があれば一旦画面から消す（重複防止）
-    let soulCoreElem = document.getElementById('soul-core');
-    if (soulCoreElem) {
-        soulCoreElem.remove();
+    if (!cachedSoulCoreElem) return;
+
+    // 選択状態のクラス切り替え
+    if (state.selected.type === 'soul') {
+        cachedSoulCoreElem.classList.add('selected');
+    } else {
+        cachedSoulCoreElem.classList.remove('selected');
     }
 
-    // もしソウルコアがカード上にある場合は、createCardElement 側で描画されるためここでは何もしない
+    // もしソウルコアがカードの上にある場合
     if (typeof state.soulCore.location === 'string' && state.soulCore.location.startsWith('card-')) {
+        const cardData = findCardData(state.soulCore.location);
+        if (cardData && cardData.element) {
+            // カード内のui要素にアタッチするなどの処理
+            const ui = cardData.element.querySelector('.card-ui');
+            if (ui && !ui.contains(cachedSoulCoreElem)) {
+                ui.appendChild(cachedSoulCoreElem);
+            }
+        }
         return;
     }
 
-    // 2. ソウルコアのDOM要素を新規作成
-    soulCoreElem = document.createElement('div');
-    soulCoreElem.id = 'soul-core';
-    soulCoreElem.className = 'soul-core-elem'; // 必要に応じてクラス名
-    if (state.selected.type === 'soul') {
-        soulCoreElem.classList.add('selected');
-    }
-    soulCoreElem.innerHTML = 'SOUL<br>CORE';
-
-    // クリックされたらソウルコアを選択状態にする
-    soulCoreElem.addEventListener('pointerup', (e) => {
-        e.preventDefault();
-        state.selected = { type: 'soul', id: null };
-        renderAll();
-    });
-
-    // 3. 現在地（reserve または trash）のホルダーへ配置
+    // リザーブまたはトラッシュのホルダーに配置する場合
     if (state.soulCore.location === 'reserve') {
         const holder = document.getElementById('reserve-soul-holder');
-        if (holder) holder.appendChild(soulCoreElem);
+        if (holder && !holder.contains(cachedSoulCoreElem)) {
+            holder.appendChild(cachedSoulCoreElem);
+        }
     } else if (state.soulCore.location === 'trash') {
         const holder = document.getElementById('trash-soul-holder');
-        if (holder) holder.appendChild(soulCoreElem);
+        if (holder && !holder.contains(cachedSoulCoreElem)) {
+            holder.appendChild(cachedSoulCoreElem);
+        }
     }
 }
 
@@ -852,3 +845,4 @@ document.addEventListener('touchend', function (event) {
     lastTouchEnd = now;
 }, { passive: false });
 
+//testStart();
