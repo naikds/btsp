@@ -290,7 +290,7 @@ function renderCores() {
     ['reserve', 'life', 'trash'].forEach(type => {
         document.getElementById(`${type}-count`).innerText = state.core[type];
     });
-    document.querySelectorAll('[data-num="choice-count"]').forEach(x=>{
+    document.querySelectorAll('[data-num="choice-count"]').forEach(x => {
         x.innerHTML = state.core["choice"];
     });
 }
@@ -539,7 +539,7 @@ function renderAll() {
 }
 
 function renderDeckCount() {
-    document.querySelectorAll('[data-num="deck-count"]').forEach(x=>{
+    document.querySelectorAll('[data-num="deck-count"]').forEach(x => {
         x.innerText = state.zones.deck.length;
     });
 }
@@ -586,6 +586,7 @@ function createCardElement(cardData, isInField) {
     const img = document.createElement('img');
     img.src = cardData.imgUrl;
     img.style.pointerEvents = 'none';
+    img.style['touch-action'] = 'none';
     imgWrapper.appendChild(img);
 
     // 2. 上の層：透明な操作用オーバーレイ（CSSクラスを使用）
@@ -679,120 +680,6 @@ function createCardElement(cardData, isInField) {
         previewModal.style.display = 'flex';
     });
 
-    document.getElementById('card-preview-modal').addEventListener('pointerup', (e) => {
-        e.preventDefault();
-        document.getElementById('card-preview-modal').style.display = 'none';
-    });
-
-    return card;
-}
-
-function _createCardElement(cardData, isInField) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    if (cardData.tapped && isInField) card.classList.add('tapped');
-    if (isInField) card.classList.add('in-field');
-    if (state.selected.type === 'card' && state.selected.id === cardData.id) {
-        card.classList.add('selected');
-    }
-    card.id = cardData.id;
-
-    const imgWrapper = document.createElement('div');
-    imgWrapper.className = 'card-img-wrapper';
-    const img = document.createElement('img');
-    img.src = cardData.imgUrl;
-    imgWrapper.appendChild(img);
-    card.appendChild(imgWrapper);
-
-    const ui = document.createElement('div');
-    ui.className = 'card-ui';
-    card.appendChild(ui);
-
-    // コアバッジの描画
-    const coreBadge = document.createElement('div');
-    coreBadge.className = 'core-badge';
-    let coreText = `C:${cardData.core}`;
-    //ソウルコアが乗っている場合文字追加
-    if (state.soulCore.location === cardData.id) {
-        coreText += `<span class="soul-core-badge">+1</span>`;
-    }
-    coreBadge.innerHTML = `<span>${coreText}</span>`;
-
-    ui.addEventListener('pointerup', (e) => {
-        e.preventDefault();
-        if (cardData.core > 0) {
-            cardData.core--;
-            state.core['choice']++;
-        }
-        renderAll();
-    });
-    ui.appendChild(coreBadge);
-
-    // ソウルコアが乗っている場合のインジケーター描画
-    if (state.soulCore.location === cardData.id) {
-        const soulIndicator = document.createElement('div');
-        soulIndicator.className = 'card-soul-indicator';
-        if (state.selected.type === 'soul') soulIndicator.classList.add('selected');
-        soulIndicator.innerHTML = 'SOUL<br>CORE';
-
-        soulIndicator.addEventListener('pointerup', (e) => {
-            e.preventDefault(); 
-            state.selected = { type: 'soul', id: null };
-            renderAll();
-        });
-        ui.appendChild(soulIndicator);
-    }
-
-    // カードデータに初期値がなければ持たせる
-    if (cardData.lastTapTime === undefined) {
-        cardData.lastTapTime = 0;
-    }
-
-    imgWrapper.addEventListener('pointerup', (e) => {
-        e.preventDefault();
-
-        const currentTime = new Date().getTime();
-        const tapInterval = currentTime - cardData.lastTapTime;
-
-        // 400ミリ秒以内にもう一度同じカードがクリックされたら
-        if (tapInterval < 400 && tapInterval > 0 && isInField) {
-            cardData.tapped = !cardData.tapped;
-            cardData.lastTapTime = 0; // リセット
-            renderAll();
-        } else {
-            // 通常のクリック時の挙動
-            if (state.core['choice'] > 0 && isInField) {
-                cardData.core += state.core['choice'];
-                state.core['choice'] = 0;
-                renderAll();
-                return;
-            }
-            if (state.selected.type === 'soul' && isInField) {
-                state.soulCore.location = cardData.id;
-                state.selected = { type: null, id: null };
-                renderAll();
-                return;
-            }
-
-            state.selected = { type: 'card', id: cardData.id };
-            renderAll();
-
-            cardData.lastTapTime = currentTime;
-        }
-    });
-
-    // 例：カード要素を作る時に右クリックイベントを追加する
-    card.addEventListener('contextmenu', (e) => {
-        e.preventDefault(); // ブラウザ標準の「名前を付けて保存」などのメニューを出さないようにする
-
-        // 拡大モーダルに画像を設定して表示する
-        const previewModal = document.getElementById('card-preview-modal');
-        const previewImg = document.getElementById('card-preview-img');
-        previewImg.src = cardData.imgUrl;
-        previewModal.style.display = 'flex';
-    });
-
-    // 拡大モーダルをクリックしたら閉じる
     document.getElementById('card-preview-modal').addEventListener('pointerup', (e) => {
         e.preventDefault();
         document.getElementById('card-preview-modal').style.display = 'none';
@@ -956,7 +843,7 @@ document.getElementById('playmat').addEventListener('pointerup', (e) => {
 
 //効いてた。各エリアのズームとかは起きなくなった。カード上のズームだけおきる。テストいる
 let lastTouchEnd = 0;
-document.addEventListener('touchend', function(event) {
+document.addEventListener('touchend', function (event) {
     const now = (new Date()).getTime();
     if (now - lastTouchEnd <= 300) {
         event.preventDefault();
