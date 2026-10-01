@@ -130,6 +130,7 @@ function showSplitPreview(img) {
             btnPlus.innerText = '+';
 
             btnMinus.addEventListener('pointerup', (e) => {
+                state.selected = { type: null, id: null };
                 e.preventDefault();
                 if (configObj.count > 0) {
                     configObj.count--;
@@ -231,6 +232,7 @@ function initGameElements() {
         cachedSoulCoreElem.className = 'soul-core-elem';
         cachedSoulCoreElem.innerHTML = 'SOUL<br>CORE';
         cachedSoulCoreElem.addEventListener('pointerup', (e) => {
+            e.stopPropagation();
             e.preventDefault();
             state.selected = { type: 'soul', id: null };
             renderAll();
@@ -279,7 +281,7 @@ function setupCoreCounter(type) {
             state.core[type] += state.core['choice'];
             state.core['choice'] = 0;
         }
-        renderCores();
+        renderAll();
     });
 
     document.getElementById(`${type}-counter`).addEventListener('pointerup', (e) => {
@@ -289,7 +291,8 @@ function setupCoreCounter(type) {
             state.core[type]--;
             state.core['choice']++;
         }
-        renderCores();
+        state.selected = { type: null, id: null };
+        renderAll();
     });
 }
 ['void', 'reserve', 'life', 'trash'].forEach(setupCoreCounter);
@@ -416,6 +419,7 @@ actionBtn.forEach(button => {
             break;
         case "refresh":
             button.addEventListener('pointerup', () => {
+                state.selected = { type: null, id: null };
                 state.core.reserve += state.core.trash + 1;
                 state.core.trash = 0;
                 state.zones.field1.forEach(id => {
@@ -454,6 +458,7 @@ document.getElementById('free-to-bottom-btn').addEventListener('pointerup', () =
 });
 
 function moveAllTempCards(sourceZone, targetZone) {
+    state.selected = { type: null, id: null };
     sourceZone.forEach(id => {
         handleCardLeavingField(id);
         targetZone.push(id);
@@ -465,6 +470,8 @@ function moveAllTempCards(sourceZone, targetZone) {
 
 
 function drawCard(targetZone) {
+    state.selected = { type: null, id: null };
+
     if (state.zones.deck.length === 0) {
         alert('山札がありません！');
         return;
@@ -632,6 +639,7 @@ function createCardElementOnce(cardData) {
     coreBadge.innerHTML = `<span>C:0</span>`;
     
     ui.addEventListener('pointerup', (e) => {
+        state.selected = { type: null, id: null };
         e.preventDefault();
         if (cardData.core > 0) {
             cardData.core--;
@@ -643,6 +651,7 @@ function createCardElementOnce(cardData) {
 
     // タップやクリックのイベント設定（一度設定すればDOMを壊さないのでズレない）
     imgWrapper.addEventListener('pointerup', (e) => {
+        e.stopPropagation();
         e.preventDefault();
         const currentTime = new Date().getTime();
         const tapInterval = currentTime - cardData.lastTapTime;
@@ -653,15 +662,16 @@ function createCardElementOnce(cardData) {
             cardData.lastTapTime = 0;
             renderAll();
         } else {
-            if (state.core['choice'] > 0 && isInField) {
-                cardData.core += state.core['choice'];
-                state.core['choice'] = 0;
-                renderAll();
-                return;
-            }
             if (state.selected.type === 'soul' && isInField) {
                 state.soulCore.location = cardData.id;
                 state.selected = { type: null, id: null };
+                renderAll();
+                return;
+            }
+
+            if (state.core['choice'] > 0 && isInField) {
+                cardData.core += state.core['choice'];
+                state.core['choice'] = 0;
                 renderAll();
                 return;
             }

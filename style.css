@@ -731,7 +731,7 @@ button.action-btn:hover {
 }
 
 .modal-header {
-    display: flex;
+    /* display: flex; */
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
@@ -740,7 +740,7 @@ button.action-btn:hover {
 }
 
 .modal-toolbar {
-    display: flex;
+    /* display: flex; */
     gap: 8px;
     margin-bottom: 12px;
     background: rgba(0, 0, 0, 0.3);
