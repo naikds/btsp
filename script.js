@@ -422,6 +422,9 @@ actionBtn.forEach(button => {
                 state.selected = { type: null, id: null };
                 state.core.reserve += state.core.trash + 1;
                 state.core.trash = 0;
+                if(state.soulCore.location === 'trash'){
+                    state.soulCore.location = 'reserve';
+                }
                 state.zones.field1.forEach(id => {
                     const cardData = findCardData(id);
                     cardData.tapped = false;
