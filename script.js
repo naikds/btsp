@@ -185,6 +185,12 @@ document.getElementById('start-game-btn').addEventListener('pointerup', () => {
         drawCard('hand');
     }
 });
+
+document.getElementById('back-btn').addEventListener('pointerup', () => {
+    document.getElementById('setup-container').style.display = 'block';
+    document.getElementById('playmat').style.display = 'none';
+});
+
 function testStart() {
 
     function createWhiteImage(width, height) {
@@ -225,6 +231,31 @@ function testStart() {
 let cachedSoulCoreElem = null;
 
 function initGameElements() {
+    //各ゾーンをクリア
+    state.zones.deck = [];
+    state.zones.hand = [];
+    state.zones.field1 = [];
+    state.zones.field2 = [];
+    state.zones.temp = [];
+    state.zones.free = [];
+    state.zones.trash = [];
+    state.zones.remove = [];
+
+    // . コアとソウルコアの初期化
+    state.core = {
+        void:9999,
+        choice: 0,
+        reserve: 3,
+        life: 5,
+        trash: 0
+    };
+    state.soulCore = {
+        location: 'reserve'
+    };
+
+    // 選択状態のクリア
+    state.selected = { type: null, id: null };
+
     // 1. ソウルコアのDOMを最初に1回だけ作る
     if (!cachedSoulCoreElem) {
         cachedSoulCoreElem = document.createElement('div');
