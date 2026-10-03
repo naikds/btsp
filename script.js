@@ -728,6 +728,11 @@ function createCardElementOnce(cardData) {
     return card;
 }
 
+document.getElementById('card-preview-modal').addEventListener('pointerup', (e) => {
+        const previewImg = document.getElementById('card-preview-modal');
+        previewImg.style.display = 'none';
+});
+
 function renderSoulCore() {
     if (!cachedSoulCoreElem) return;
 
