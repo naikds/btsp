@@ -163,15 +163,20 @@ function updateTotalCount() {
     const infoElem = document.getElementById('deck-total-info');
 
     totalValElem.innerText = total;
-    infoElem.className = (total === 40) ? 'valid' : 'invalid';
+    infoElem.className = (total >= 40) ? 'valid' : 'invalid';
 }
 
 // --- 4. 「決定」ボタンでゲーム開始 ---
 document.getElementById('start-game-btn').addEventListener('pointerup', () => {
     let total = state.cardConfigs.reduce((sum, conf) => sum + conf.count, 0);
-    if (total !== 40) {
-        alert(`デッキの合計枚数が40枚ではありません（現在 ${total} 枚）。バトスピのデッキは40枚にする必要があります！`);
+    if (total < 40) {
+        alert(`デッキの合計枚数が40枚以上ではありません（現在 ${total} 枚）。バトスピのデッキは40枚以上にする必要があります！`);
         return;
+    }
+
+    if(total > 40){
+        let conf = window.confirm(`デッキの合計枚数が【 ${total} 枚】です。よろしいですか？`)
+        if(!conf) return;
     }
 
     initGameElements();
