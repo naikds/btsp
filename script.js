@@ -196,6 +196,62 @@ document.getElementById('back-btn').addEventListener('pointerup', () => {
     document.getElementById('playmat').style.display = 'none';
 });
 
+//共有画面系
+let sharedWindow = null; 
+document.getElementById('shared-btn').addEventListener('pointerup', () => {
+    sharedWindow = window.open('shared.html', 'sharedView');
+});
+function sendToShared() {
+    // ① ウィンドウが存在して、かつ閉じられていない時だけ送る
+    if (sharedWindow && !sharedWindow.closed) {
+        let sendData = {
+            zones: {
+                deck: state.zones.deck,              // 山札（カードIDの配列）
+                hand: state.zones.hand,          // 手札（カードIDの配列）
+                field1: state.zones.field1,         // フィールド（カードIDの配列）
+                field2: state.zones.field2,         // フィールド（カードIDの配列）
+                temp: state.zones.temp,          // めくり置き場（カードIDの配列）
+                free: state.zones.free          // 一時置き場（カードIDの配列）
+            },
+            core: {
+                void: state.core.void,
+                reserve:state.core.reserve,
+                life:state.core.life,
+                trash:state.core.trash,
+                choice:state.core.choice
+            },
+            soulCore: {
+                location: 'reserve', // 'reserve', 'trash', または カードID
+            },
+            modal: {
+                mode: 'card-trash',  // 'card-trash' または 'remove'
+                selectedId: null     // モーダル内で選択中のカードID
+            }
+        };
+
+        sharedWindow.updateSharedBoard(sendData);
+    } else {
+        // 子ウィンドウが閉じられているときは、何もしない（あるいは必要なら無視する）
+    }
+}
+// ② 子ウィンドウから「準備できたよ！」と呼ばれる関数
+window.onChildReady = function() {
+    console.log("子から準備完了の合図を受け取りました！初期データを送ります。");
+
+    // 準備ができた瞬間に、初期データを安全に送る
+    if (sharedWindow && !sharedWindow.closed) {
+        clone_cards = [];
+        state.cards.forEach(card=>{
+            c_card = {
+                id: card.id,
+                imgUrl: card.imgUrl,
+            }
+            clone_cards.push(c_card);
+        });
+        sharedWindow.initSharedBoard(clone_cards);
+    }
+};
+
 function testStart() {
 
     function createWhiteImage(width, height) {
@@ -286,6 +342,7 @@ function initGameElements() {
                 imgUrl: conf.imgUrl,
                 core: 0,
                 tapped: false,
+                heavyTapped: false,
                 lastTapTime: 0,
                 element: null // ここにDOMを保持
             };
@@ -297,6 +354,153 @@ function initGameElements() {
         }
     });
 
+    //カードのためのドラック要素をdocumentに設定する
+        
+    document.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+    
+        // カード要素の位置とサイズを取得
+        const rect = dragDataSnap.imgWrapper.getBoundingClientRect();
+        const cursorX = e.clientX;
+        const cursorY = e.clientY;
+
+        // カードの周囲に設ける「空間（余白）」の幅(px)
+        const padding = 45; 
+    
+        // 内側空間（カード＋指定の余白）の境界値
+        const innerLeft = rect.left - padding;
+        const innerRight = rect.right + padding;
+        const innerTop = rect.top - padding;
+        const innerBottom = rect.bottom + padding;
+    
+        // ６＆７．空間の外に出ているかどうかの判定（カード移動モード）
+        const isOutsideSpace = cursorX < innerLeft || cursorX > innerRight || cursorY < innerTop || cursorY > innerBottom;
+
+        let dragCardData = dragDataSnap.cardData;
+
+        if (isOutsideSpace) {
+            hasMovedToDrag = true;
+    
+            // ★ ドラッグ中にカーソル下にある要素をリアルタイムで取得
+            const elementUnderCursor = document.elementFromPoint(cursorX, cursorY);
+            if (elementUnderCursor) {
+                const targetDropZone = dropZones.find(zone => zone.elem.contains(elementUnderCursor));
+                
+                if (targetDropZone) {
+                    const zName = targetDropZone.zoneName;
+                    
+                    const currentZone = getCurrentZoneName(dragCardData.id);
+    
+                    // 今いるゾーンとは違うエリアに持ち込まれた場合、その場で移動！
+                    if (zName !== currentZone) {
+                        dragCardData.tapped = dragDataSnap.tapped;
+                        dragCardData.heavyTapped = dragDataSnap.heavyTapped;
+                        dragCardData.core = dragDataSnap.core;
+                        state.soulCore.location = dragDataSnap.soulCore;
+
+                        if (zName === 'card-trash') {
+                            moveCard(dragCardData.id, 'trash',true);
+                        } else if (zName === 'remove') {
+                            moveCard(dragCardData.id, 'remove',true);
+                        } else if (zName !== 'soul-reserve' && zName !== 'soul-trash') {
+                            // 通常ゾーン (hand, field1, field2, temp, free など)
+                            moveCard(dragCardData.id, zName,true);
+                        }
+                    }
+                }
+            }
+            
+            return;
+        }
+
+        //移動前のフィールドと違う場合は元の状態を引き継いで変化させない
+        if(dragDataSnap.zone !== getCurrentZoneName(dragCardData.id)){
+            return;
+        }
+    
+        // --- ここからは「空間内」にいる場合の判定（要求１〜４） ---
+        const isInField = state.zones.field1.includes(dragCardData.id) || state.zones.field2.includes(dragCardData.id);
+        if (!isInField) return; // フィールド外のカードは状態変化させない
+
+        // カードの中心座標
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+    
+        // 中心からの相対位置
+        const dx = cursorX - centerX;
+        const dy = cursorY - centerY;
+    
+        let changed = false;
+    
+        // ２．空間内の右側 ➔ 疲労
+        if (dx > rect.width / 3 && Math.abs(dy) < rect.height / 2) {
+            if (!dragCardData.tapped || dragCardData.heavyTapped) {
+                dragCardData.tapped = true;
+                dragCardData.heavyTapped = false;
+                changed = true;
+            }
+        }
+        // ３．空間内の下側 ➔ 重疲労
+        else if (dy > rect.height / 3 && Math.abs(dx) < rect.width / 2) {
+            if (dragCardData.tapped || !dragCardData.heavyTapped) {
+                dragCardData.tapped = false;
+                dragCardData.heavyTapped = true;
+                changed = true;
+            }
+        }
+        // ４．空間内の上側 ➔ 回復
+        else if (dy < -rect.height / 3 && Math.abs(dx) < rect.width / 2) {
+            if (dragCardData.tapped || dragCardData.heavyTapped) {
+                dragCardData.tapped = false;
+                dragCardData.heavyTapped = false;
+                changed = true;
+            }
+        }
+    
+        if (changed) {
+            renderAll();
+        }
+    });
+    
+    document.addEventListener('pointerup', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (isDragging) {
+
+            let dragCardData = dragDataSnap.cardData;
+    
+            const deltaX = Math.abs(e.clientX - dragStartX);
+            const deltaY = Math.abs(e.clientY - dragStartY);
+    
+            // ほとんど動かさずに離した場合は単一タップ（選択 / コア操作）
+            if (deltaX < 5 && deltaY < 5) {
+                const isInField = state.zones.field1.includes(dragCardData.id) || state.zones.field2.includes(dragCardData.id);
+                if (state.selected.type === 'soul' && isInField) {
+                    state.soulCore.location = dragCardData.id;
+                    state.selected = { type: null, id: null };
+                    renderAll();
+                } else if (state.core['choice'] > 0 && isInField) {
+                    dragCardData.core += state.core['choice'];
+                    state.core['choice'] = 0;
+                    renderAll();
+                } else {
+                    state.selected = { type: 'card', id: dragCardData.id };
+                    renderAll();
+                }
+            } else if (hasMovedToDrag) {
+                if(!['field1','field2'].includes(getCurrentZoneName(dragCardData.id))){
+                    handleCardLeavingField(dragCardData.id);
+                    renderAll();
+                }
+            }
+        }
+    
+        isDragging = false;
+        hasMovedToDrag = false;
+        dragDataSnap = null;
+    });
+
     shuffleArray(state.zones.deck);
 }
 
@@ -305,6 +509,14 @@ function shuffleArray(array) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
+}
+
+// カードの現在のゾーンを調べるヘルパー
+function getCurrentZoneName(cardId){
+    for (const [zoneName, array] of Object.entries(state.zones)) {
+        if (array.includes(cardId)) return zoneName;
+    }
+    return null;
 }
 
 // --- コア増減ロジック ---
@@ -369,13 +581,14 @@ function handleCardLeavingField(cardId) {
     }
 
     card.tapped = false;
+    card.heavyTapped = false;
 }
 
 // --- カード移動の共通アクション ---
-function moveCard(cardId, targetZone) {
+function moveCard(cardId, targetZone,option=false) {
     // フィールドにいたカードが別の場所（手札・トラッシュ・デッキなど）に移動する場合の離脱チェック
     const wasInField = state.zones.field1.includes(cardId) || state.zones.field2.includes(cardId);
-    if (wasInField && (targetZone !== 'field1' && targetZone !== 'field2')) {
+    if (wasInField && (targetZone !== 'field1' && targetZone !== 'field2') && !option) {
         handleCardLeavingField(cardId);
     }
 
@@ -405,6 +618,7 @@ document.getElementById('reset-game-btn').addEventListener('pointerup', (e) => {
         // カードのコアやタップ状態もリセット
         card.core = 0;
         card.tapped = false;
+        card.heavyTapped = false;
         state.zones.deck.push(card.id);
     });
 
@@ -461,14 +675,25 @@ actionBtn.forEach(button => {
                 if(state.soulCore.location === 'trash'){
                     state.soulCore.location = 'reserve';
                 }
-                state.zones.field1.forEach(id => {
-                    const cardData = findCardData(id);
-                    cardData.tapped = false;
-                });
-                state.zones.field2.forEach(id => {
-                    const cardData = findCardData(id);
-                    cardData.tapped = false;
-                });
+
+                const refreshFieldCards = (fieldArray) => {
+                    fieldArray.forEach(id => {
+                        const cardData = findCardData(id);
+                        if (!cardData) return;
+            
+                        if (cardData.heavyTapped) {
+                            // 重疲労 → 疲労へ1段階戻る
+                            cardData.heavyTapped = false;
+                            cardData.tapped = true;
+                        } else if (cardData.tapped) {
+                            // 疲労 → 回復
+                            cardData.tapped = false;
+                        }
+                    });
+                };
+                refreshFieldCards(state.zones.field1);
+                refreshFieldCards(state.zones.field2);
+
                 renderAll();
             });
             break;
@@ -586,6 +811,7 @@ function renderAll() {
     renderZones();
     renderSoulCore();
     renderModal();
+    sendToShared();
 }
 
 function renderDeckCount() {
@@ -635,6 +861,10 @@ function updateCardStateVisual(cardData, isInField) {
     if (cardData.tapped && isInField) card.classList.add('tapped');
     else card.classList.remove('tapped');
 
+    //重疲労の場合はタップより優先される
+    if (cardData.heavyTapped && isInField) card.classList.add('heavy-tapped');
+    else card.classList.remove('heavy-tapped');
+
     if (isInField) card.classList.add('in-field');
     else card.classList.remove('in-field');
 
@@ -655,6 +885,13 @@ function updateCardStateVisual(cardData, isInField) {
     }
 }
 
+//ここで定義するけど全体で使うやつ
+//カードのドラック用
+let isDragging = false;
+let hasMovedToDrag = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragDataSnap = null;
 
 function createCardElementOnce(cardData) {
     const card = document.createElement('div');
@@ -687,43 +924,30 @@ function createCardElementOnce(cardData) {
         }
     });
     ui.appendChild(coreBadge);
-
-    // タップやクリックのイベント設定（一度設定すればDOMを壊さないのでズレない）
-    imgWrapper.addEventListener('pointerup', (e) => {
+    
+    imgWrapper.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
-        e.preventDefault();
-        const currentTime = new Date().getTime();
-        const tapInterval = currentTime - cardData.lastTapTime;
-        const isInField = state.zones.field1.includes(cardData.id) || state.zones.field2.includes(cardData.id);
-
-        if (tapInterval < 400 && tapInterval > 0 && isInField) {
-            cardData.tapped = !cardData.tapped;
-            cardData.lastTapTime = 0;
-            renderAll();
-        } else {
-            if (state.selected.type === 'soul' && isInField) {
-                state.soulCore.location = cardData.id;
-                state.selected = { type: null, id: null };
-                renderAll();
-                return;
-            }
-
-            if (state.core['choice'] > 0 && isInField) {
-                cardData.core += state.core['choice'];
-                state.core['choice'] = 0;
-                renderAll();
-                return;
-            }
-
-            state.selected = { type: 'card', id: cardData.id };
-            renderAll();
-            cardData.lastTapTime = currentTime;
-        }
+        //e.target.setPointerCapture(e.pointerId);
+        e.target.setPointerCapture(e.pointerId);
+        isDragging = true;
+        hasMovedToDrag = false;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        dragDataSnap = {
+            cardData:cardData,
+            imgWrapper:imgWrapper,
+            tapped:cardData.tapped,
+            heavyTapped:cardData.heavyTapped,
+            zone:getCurrentZoneName(card.id),
+            core:cardData.core,
+            soulCore:state.soulCore.location
+        };
     });
 
     // 右クリックプレビュー
     card.addEventListener('contextmenu', (e) => {
         e.preventDefault();
+
         const previewModal = document.getElementById('card-preview-modal');
         const previewImg = document.getElementById('card-preview-img');
         previewImg.src = cardData.imgUrl;
@@ -811,7 +1035,6 @@ function renderModal() {
 
         const card = document.createElement('div');
         card.className = 'card in-field';
-        if (cardData.tapped) card.classList.add('tapped');
         if (state.modal.selectedId === cardData.id) card.classList.add('selected');
 
         const imgWrapper = document.createElement('div');

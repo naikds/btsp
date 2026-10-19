@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>バトスピ共有用画面</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- プレイマット画面 -->
+    <div id="playmat-shared">
+        <div class="top-row">
+            <!-- 山札ゾーン -->
+            <div class="deck-area pc-only-contents">
+                <div class="zone-title">山札 (<span data-num="deck-count">0</span>枚)</div>
+                <div class="floating-deck">
+                </div>
+            </div>
+
+            <!-- めくり置き場 -->
+            <div class="temp-area" id="zone-temp">
+                <div class="zone-title pc-only-contents">めくり置き場</div>
+                <div class="temp-cards-container" id="temp-cards-container"></div>
+            </div>
+
+            <!-- 一時置き場 -->
+            <div class="free-area" id="zone-free">
+                <div class="zone-title pc-only-contents">一時置き場</div>
+                <div class="free-area-cards" id="free-cards-container"></div>
+            </div>
+
+            <div class="top-row-rows-rapper"><!-- スマホ用ラッパー-->
+                <!-- カードトラッシュ -->
+                <div class="card-trash-area" id="zone-card-trash">
+                    <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">トラッシュ</div>
+                    <div class="card-trash-count" id="card-trash-count">0</div>
+                </div>
+
+                <!-- 除外ゾーン -->
+                <div class="remove-area" id="zone-remove">
+                    <div class="zone-title" style="border:none; margin:0; font-size:0.75rem;">除外ゾーン</div>
+                    <div class="remove-count" id="remove-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- メインプレイエリア（フィールド ＋ 右側の縦並びコアゾーン） -->
+        <!-- <div class="zone-title pc-only-contents">フィールド</div> -->
+        <div class="main-play-row">
+            <!-- フィールドエリア -->
+            <!-- 左側：上下に並べるフィールド群のラッパー -->
+            <div class="fields-column">
+                <!-- 上段フィールド -->
+                <div class="field-area" id="zone-field1">
+                    <div id="field1-cards-container" class="field-area-container"></div>
+                </div>
+                <!-- 下段フィールド -->
+                <div class="field-area pc-only-contents" id="zone-field2">
+                    <div id="field2-cards-container" class="field-area-container"></div>
+                </div>
+            </div>
+
+            <div class="core-zone pc-only-contents" id="zone-choice">
+                <div class="zone-title">選択中コア</div>
+                <div class="core-zone-content" id="choice-content">
+                    <div class="zone-core-counter" id="choice-counter">
+                        <span class="core-label">C:</span>
+                        <span class="core-num" data-num="choice-count">0</span>
+                    </div>
+                </div>
+            </div>
+            <!-- コア管理ゾーン（ライフ・リザーブ・トラッシュを縦に積み上げ） -->
+            <div class="core-zones-column">
+                <div class="core-zones-column-rapper">
+                    <!-- ボイド -->
+                    <div class="core-zone" id="zone-void">
+                        <div class="zone-title">ボイド
+                            <span class="core-zone-title-minus">から取る</span>
+                            <span class="core-zone-title-puls">へ置く</span>
+                        </div>
+                        <div class="core-zone-content" id="void-content">
+                            <div class="zone-core-counter" id="void-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="void-count">∞</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ライフ -->
+                    <div class="core-zone" id="zone-life">
+                        <div class="zone-title">ライフ
+                            <span class="core-zone-title-minus">から取る</span>
+                            <span class="core-zone-title-puls">へ置く</span>
+                        </div>
+                        <div class="core-zone-content" id="life-content">
+                            <div class="zone-core-counter" id="life-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="life-count">5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- リザーブ -->
+                <div class="core-zone" id="zone-reserve">
+                    <div class="zone-title">リザーブ
+                        <span class="core-zone-title-minus">から取る</span>
+                        <span class="core-zone-title-puls">へ置く</span>
+                    </div>
+                    <div class="core-zone-content" id="reserve-content">
+                        <div class="core-zones-column-rapper">
+                            <div class="zone-core-counter" id="reserve-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="reserve-count">3</span>
+                            </div>
+                            <div class="soul-holder" id="reserve-soul-holder"></div>
+                        </div> 
+                    </div>
+                </div>
+
+                <!-- トラッシュ（コア用） -->
+                <div class="core-zone" id="zone-trash">
+                    <div class="zone-title">トラッシュ
+                        <span class="core-zone-title-minus">から取る</span>
+                        <span class="core-zone-title-puls">へ置く</span>
+                    </div>
+                    <div class="core-zone-content" id="trash-content">
+                        <div class="core-zones-column-rapper">
+                            <div class="zone-core-counter" id="trash-counter">
+                                <span class="core-label">C:</span>
+                                <span class="core-num" id="trash-count">0</span>
+                            </div>
+                            <div class="soul-holder" id="trash-soul-holder"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="notpc-only-contents">
+                <div style="display: block;">
+                    <span>選択中コア</span><br>
+                    <div class="core-num" data-num="choice-count">1</div>
+                </div>  
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- カード拡大プレビュー用モーダル -->
+    <div id="card-preview-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; z-index: 9999; cursor: pointer;">
+        <img id="card-preview-img" src="" alt="Card Preview" style="max-height: 80vh; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+    </div>
+
+    <!-- 共通カード一覧モーダル（トラッシュ・除外用） -->
+    <div id="list-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">カード一覧 (<span id="modal-count">0</span>枚)</h3>
+            </div>
+
+            <div class="modal-cards-grid" id="modal-cards-container"></div>
+        </div>
+    </div>
+
+    <script src="shared.js"></script>
+</body>
+
+</html>

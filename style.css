@@ -132,6 +132,18 @@ h1 {
     box-sizing: border-box;
 }
 
+#playmat-shared {
+    display: block;
+    position: relative;
+    width: 100%;
+    min-height: 800px;
+    background: #123512;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
 .zone-title {
     font-size: 0.85rem;
     color: #aaa;
@@ -549,8 +561,14 @@ h1 {
     transform-origin: center center;
 }
 
+/* 通常の疲労（90度回転） */
 .card.tapped .card-img-wrapper {
     transform: rotate(90deg);
+}
+
+/* 重疲労（180度回転・逆向き） */
+.card.heavy-tapped .card-img-wrapper {
+    transform: rotate(180deg);
 }
 
 .card-img-wrapper img {
