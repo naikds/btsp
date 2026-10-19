@@ -694,6 +694,8 @@ actionBtn.forEach(button => {
                 refreshFieldCards(state.zones.field1);
                 refreshFieldCards(state.zones.field2);
 
+                drawCard('hand');
+
                 renderAll();
             });
             break;
