@@ -470,10 +470,11 @@ function initGameElements() {
     });
     
     document.addEventListener('pointerup', (e) => {
-        e.stopPropagation();
+        //e.stopPropagation();
         e.preventDefault();
 
         if (isDragging) {
+            e.stopImmediatePropagation();
 
             let dragCardData = dragDataSnap.cardData;
     
@@ -501,12 +502,18 @@ function initGameElements() {
                     renderAll();
                 }
             }
+
+            try {
+                e.target.releasePointerCapture(e.pointerId);
+            } catch (err) {
+                // キャプチャがすでに切れている場合のエラー対策
+            }
         }
     
         isDragging = false;
         hasMovedToDrag = false;
         dragDataSnap = null;
-    });
+    },true);
 
     shuffleArray(state.zones.deck);
 }
