@@ -221,12 +221,19 @@ function sendToShared() {
                 choice:state.core.choice
             },
             soulCore: {
-                location: 'reserve', // 'reserve', 'trash', または カードID
+                location: state.soulCore.location, // 'reserve', 'trash', または カードID
             },
             modal: {
                 mode: 'card-trash',  // 'card-trash' または 'remove'
                 selectedId: null     // モーダル内で選択中のカードID
-            }
+            },
+            cards:state.cards.map(x=>({
+                id:x.id,
+                core: x.core,
+                tapped: x.tapped,
+                heavyTapped: x.heavyTapped
+            })),
+            handCount:state.zones.hand.length
         };
 
         sharedWindow.updateSharedBoard(sendData);
@@ -954,6 +961,10 @@ function createCardElementOnce(cardData) {
         const previewImg = document.getElementById('card-preview-img');
         previewImg.src = cardData.imgUrl;
         previewModal.style.display = 'flex';
+
+        if (sharedWindow && !sharedWindow.closed && getCurrentZoneName(cardData.id) !== 'hand') {
+            sharedWindow.showPreviewModal(cardData.imgUrl);
+        }
     });
 
     return card;
@@ -962,6 +973,10 @@ function createCardElementOnce(cardData) {
 document.getElementById('card-preview-modal').addEventListener('pointerup', (e) => {
         const previewImg = document.getElementById('card-preview-modal');
         previewImg.style.display = 'none';
+
+        if (sharedWindow && !sharedWindow.closed) {
+            sharedWindow.closePreviewModal();
+        }
 });
 
 function renderSoulCore() {

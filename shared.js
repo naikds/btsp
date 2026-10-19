@@ -85,15 +85,34 @@ window.initSharedBoard = function(data){
 window.updateSharedBoard = function(data) {
     console.log("親からデータを受け取ったよ:", data);
     // 受け取ったデータを元に盤面の表示を更新する処理
-    state.zones.deck = data.zones.deck;
-    state.zones.hand = data.zones.hand;
-    state.zones.field1 = data.zones.field1;
-    state.zones.field2 = data.zones.field2;
-    state.zones.temp = data.zones.temp;
-    state.zones.free = data.zones.free;
+    state.zones = data.zones;
+    state.core = data.core;
+    state.soulCore = data.soulCore;
+
+    state.cards.forEach(card=>{
+        let paCard = data.cards.find(c=>c.id === card.id);
+        card.core = paCard.core;
+        card.tapped = paCard.tapped;
+        card.heavyTapped = paCard.heavyTapped;
+    })
+
+    document.getElementById('handCount').innerHTML = `手札：${data.handCount}枚`
 
     renderZones();
+    renderCores();
+    renderSoulCore();
 };
+
+window.showPreviewModal = function(data){
+    const previewModal = document.getElementById('card-preview-modal');
+    const previewImg = document.getElementById('card-preview-img');
+    previewImg.src = data;
+    previewModal.style.display = 'flex';
+}
+window.closePreviewModal = function(){
+    const previewImg = document.getElementById('card-preview-modal');
+    previewImg.style.display = 'none';
+}
 
 function renderZones() {
     const zoneContainers = {
@@ -120,6 +139,52 @@ function renderZones() {
             container.appendChild(cardData.element);
         });
     });
+}
+
+function renderCores() {
+    ['reserve', 'life', 'trash'].forEach(type => {
+        document.getElementById(`${type}-count`).innerText = state.core[type];
+    });
+    document.querySelectorAll('[data-num="choice-count"]').forEach(x => {
+        x.innerHTML = state.core["choice"];
+    });
+}
+
+function renderSoulCore() {
+    if (!cachedSoulCoreElem) return;
+
+    // 選択状態のクラス切り替え
+    if (state.selected.type === 'soul') {
+        cachedSoulCoreElem.classList.add('selected');
+    } else {
+        cachedSoulCoreElem.classList.remove('selected');
+    }
+
+    // もしソウルコアがカードの上にある場合
+    if (typeof state.soulCore.location === 'string' && state.soulCore.location.startsWith('card-')) {
+        const cardData = findCardData(state.soulCore.location);
+        if (cardData && cardData.element) {
+            // カード内のui要素にアタッチするなどの処理
+            const ui = cardData.element.querySelector('.card-ui');
+            if (ui && !ui.contains(cachedSoulCoreElem)) {
+                ui.appendChild(cachedSoulCoreElem);
+            }
+        }
+        return;
+    }
+
+    // リザーブまたはトラッシュのホルダーに配置する場合
+    if (state.soulCore.location === 'reserve') {
+        const holder = document.getElementById('reserve-soul-holder');
+        if (holder && !holder.contains(cachedSoulCoreElem)) {
+            holder.appendChild(cachedSoulCoreElem);
+        }
+    } else if (state.soulCore.location === 'trash') {
+        const holder = document.getElementById('trash-soul-holder');
+        if (holder && !holder.contains(cachedSoulCoreElem)) {
+            holder.appendChild(cachedSoulCoreElem);
+        }
+    }
 }
 
 // --- カード検索ヘルパー ---
@@ -180,6 +245,7 @@ function createCardElementOnce(cardData) {
     const coreBadge = document.createElement('div');
     coreBadge.className = 'core-badge';
     coreBadge.innerHTML = `<span>C:0</span>`;
+    ui.appendChild(coreBadge);
 
     return card;
 }
