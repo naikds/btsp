@@ -364,6 +364,7 @@ function initGameElements() {
     //カードのためのドラック要素をdocumentに設定する
         
     document.addEventListener('pointermove', (e) => {
+        e.preventDefault();
         if (!isDragging) return;
     
         // カード要素の位置とサイズを取得
@@ -514,6 +515,19 @@ function initGameElements() {
         hasMovedToDrag = false;
         dragDataSnap = null;
     },true);
+
+    document.addEventListener('pointercancel',(e)=>{
+        e.preventDefault();
+
+        try {
+            e.target.releasePointerCapture(e.pointerId);
+        } catch (err) {
+            // キャプチャがすでに切れている場合のエラー対策
+        }
+        isDragging = false;
+        hasMovedToDrag = false;
+        dragDataSnap = null;
+    });
 
     shuffleArray(state.zones.deck);
 }
@@ -943,7 +957,6 @@ function createCardElementOnce(cardData) {
     
     imgWrapper.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
-        //e.target.setPointerCapture(e.pointerId);
         e.target.setPointerCapture(e.pointerId);
         isDragging = true;
         hasMovedToDrag = false;
